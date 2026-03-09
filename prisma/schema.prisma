@@ -1,0 +1,197 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Shopify Auth (keep as-is, required by @shopify/shopify-app-remix) ────────
+
+model Session {
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+// ─── ShareCart Pro Models ──────────────────────────────────────────────────────
+
+model Shop {
+  id         String   @id @default(cuid())
+  shopDomain String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  settings    ShopSettings?
+  shareLinks  ShareLink[]
+  savedCarts  SavedCart[]
+  paramRules  ParamRule[]
+  shareEvents ShareEvent[]
+}
+
+model ShopSettings {
+  id     String @id @default(cuid())
+  shopId String @unique
+  shop   Shop   @relation(fields: [shopId], references: [id])
+
+  buttonLabel       String  @default("Share Cart")
+  buttonColor       String  @default("#000000")
+  buttonTextColor   String  @default("#ffffff")
+  buttonPosition    String  @default("after-cart-actions")
+  // Comma-separated list of enabled channels
+  enabledChannels   String  @default("link,whatsapp,facebook,twitter,email")
+  linkExpireDays    Int?
+  
+  // URL Parameters Configuration
+  preserveShareParams Boolean @default(false)
+
+  enableCoupon      Boolean @default(false)
+  couponDiscountPct Int?
+
+  // Share form field toggles
+  showNameField        Boolean @default(true)
+  showDescriptionField Boolean @default(true)
+  showPromoField       Boolean @default(false)
+  showExpiryField      Boolean @default(true)
+  showSaveOption       Boolean @default(true)
+
+  // Redirect after cart restoration
+  redirectTarget String @default("cart") // "cart" or "checkout"
+
+  defaultShareMessage String @default("Check out my cart!")
+  customWebhookUrl    String?
+
+  // Customer permissions
+  allowCustomerDeactivate Boolean @default(true)
+  allowCustomerDelete     Boolean @default(true)
+  showExpiredCarts        Boolean @default(false)
+
+  // Product exclusion
+  excludeTag String @default("no-shared-cart")
+
+  // Visibility rules: "all" | "logged_in" | "tagged"
+  visibilityMode String @default("logged_in")
+  visibilityTag  String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ShareLink {
+  id     String @id @default(cuid())
+  token  String @unique @default(uuid())
+  shopId String
+  shop   Shop   @relation(fields: [shopId], references: [id])
+
+  // Serialized line items: [{ variantId, quantity, properties }]
+  cartData      String
+  customerId    String?
+  customerEmail String?
+
+  name        String  @default("")
+  description String  @default("")
+  shortUrl    String? @unique
+
+  isActive     Boolean @default(true)
+  isArchived   Boolean @default(false)
+  isSaved      Boolean @default(true)
+  neverExpires Boolean @default(false)
+
+  impressions        Int @default(0)
+  completedPurchases Int @default(0)
+
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  events     ShareEvent[]
+  promoCodes PromoCode[]
+  orders     Order[]
+}
+
+// ─── RESERVED FOR FUTURE USE ──────────────────────────────────────────────────────────
+// Originally intended for "Saved Carts" separate from ShareLinks.
+// Kept in schema to avoid breaking existing DB migrations and GDPR webhooks.
+model SavedCart {
+  id     String @id @default(cuid())
+  shopId String
+  shop   Shop   @relation(fields: [shopId], references: [id])
+
+  customerId String
+  name       String @default("Saved Cart")
+  // Serialized line items
+  cartData   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ParamRule {
+  id     String @id @default(cuid())
+  shopId String
+  shop   Shop   @relation(fields: [shopId], references: [id])
+
+  paramKey         String
+  paramValue       String
+  // JSON string: { "whatsapp": "whatsapp", "email": "email", ... }
+  channelOverrides String?
+  isActive         Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ShareEvent {
+  id     String @id @default(cuid())
+  shopId String
+  shop   Shop   @relation(fields: [shopId], references: [id])
+
+  shareLinkId String?
+  shareLink   ShareLink? @relation(fields: [shareLinkId], references: [id])
+
+  // created | opened | cart_restored | checkout_started | order_placed
+  eventType  String
+  // link | whatsapp | facebook | twitter | email
+  channel    String?
+  customerId String?
+  orderId    String?
+  orderValue Float?
+  ipCountry  String?
+
+  createdAt DateTime @default(now())
+}
+
+model PromoCode {
+  id          String    @id @default(cuid())
+  code        String
+  shareLinkId String
+  shareLink   ShareLink @relation(fields: [shareLinkId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id                   String   @id @default(cuid())
+  shopifyOrderId       String
+  shopifyOrderName     String?
+  shopifyCustomerId    String?
+  shopifyCustomerEmail String?
+  orderValue           Float?
+  createdAt            DateTime @default(now())
+
+  shareLinkId String
+  shareLink   ShareLink @relation(fields: [shareLinkId], references: [id], onDelete: Cascade)
+}

@@ -1,0 +1,116 @@
+{% comment %}
+  ShareCart Pro — Share Cart Button (App Block)
+  Merchants drag this block onto their cart page via the theme editor.
+  Visibility controlled by the App Embed Block's visibility_mode setting.
+{% endcomment %}
+
+{% comment %} The modal is now created dynamically by sharecart-button.js {% endcomment %}
+
+{% comment %} Liquid-side visibility gate (JS also enforces via shouldShowButton) {% endcomment %}
+{% assign sc_visible = false %}
+{% if customer %}
+  {% assign sc_visible = true %}
+{% endif %}
+
+{% if sc_visible %}
+<div
+  id="sharecart-btn-wrapper"
+  data-shop="{{ shop.permanent_domain }}"
+  data-customer="{{ customer.id | default: '' }}"
+  data-customer-email="{{ customer.email | default: '' }}"
+  data-app-url="/apps/sharecart"
+  data-button-label="{{ block.settings.button_label | default: 'Share Cart' }}"
+  data-button-style="{{ block.settings.button_style | default: 'filled' }}"
+  data-button-color="{{ block.settings.button_color | default: '#000000' }}"
+  data-button-text-color="{{ block.settings.button_text_color | default: '#ffffff' }}"
+  data-channels="{{ block.settings.channels | default: 'link,whatsapp,facebook,twitter,email' }}"
+>
+  <button
+    id="sharecart-open-btn"
+    class="sharecart-btn"
+    type="button"
+    style="
+      background-color: {{ block.settings.button_color | default: '#000000' }};
+      color: {{ block.settings.button_text_color | default: '#ffffff' }};
+      border: {% if block.settings.button_style == 'outline' %}2px solid {{ block.settings.button_color | default: '#000000' }}{% else %}none{% endif %};
+      {% if block.settings.button_style == 'outline' %}
+        background-color: transparent;
+        color: {{ block.settings.button_color | default: '#000000' }};
+      {% endif %}
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: {% if block.settings.full_width %}100%{% else %}auto{% endif %};
+      justify-content: center;
+      transition: opacity 0.2s;
+    "
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+    </svg>
+    <span class="sc-btn-label">{{ block.settings.button_label | default: 'Share Cart' }}</span>
+  </button>
+</div>
+
+{% endif %}
+
+{{ 'sharecart-styles.css' | asset_url | stylesheet_tag }}
+
+{% schema %}
+{
+  "name": "Share Cart Button",
+  "target": "section",
+  "enabled_on": {
+    "templates": ["cart"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Share Cart"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "Button style",
+      "options": [
+        { "value": "filled", "label": "Filled" },
+        { "value": "outline", "label": "Outline" }
+      ],
+      "default": "filled"
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "Full width button",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "channels",
+      "label": "Enabled channels (comma-separated)",
+      "default": "link,whatsapp,facebook,twitter,email",
+      "info": "Options: link, whatsapp, facebook, twitter, email"
+    }
+  ]
+}
+{% endschema %}

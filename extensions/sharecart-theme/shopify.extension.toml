@@ -1,0 +1,9 @@
+api_version = "2026-04"
+
+[[extensions]]
+
+uid = "328d1478-793f-128b-7030-3748ff2c9daa2bd3dd5c"
+
+type = "theme"
+name = "ShareCart Pro"
+handle = "sharecart-theme"

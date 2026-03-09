@@ -1,0 +1,144 @@
+{% comment %}
+  ShareCart Pro — Global Scripts (App Embed Block)
+  Runs on every page to handle:
+  1. Cart restore when a visitor lands with ?_sc=TOKEN
+  2. UTM param capture and preservation through Shopify's cart redirect
+  3. Share modal logic (available globally for drawer + cart page)
+  4. Cart drawer share button injection
+{% endcomment %}
+
+<script>
+  // Base config from Liquid (customer context, asset URLs)
+  window.__sharecart = {
+    shop: "{{ shop.permanent_domain }}",
+    appUrl: "/apps/sharecart",
+    customerLoggedIn: {% if customer %}true{% else %}false{% endif %},
+    customerId: "{{ customer.id | default: '' }}",
+    customerEmail: "{{ customer.email | default: '' }}",
+    customerTags: {% if customer %}{{ customer.tags | json }}{% else %}[]{% endif %},
+    stylesUrl: "{{ 'sharecart-styles.css' | asset_url }}",
+    // Fallback values from theme editor (overridden by DB config below)
+    showNameField: {{ block.settings.show_name_field }},
+    showDescriptionField: {{ block.settings.show_description_field }},
+    showPromoField: {{ block.settings.show_promo_field }},
+    showExpiryField: {{ block.settings.show_expiry_field }},
+    showSaveOption: {{ block.settings.show_save_option }},
+    visibilityMode: "{{ block.settings.visibility_mode }}",
+    requiredTag: "{{ block.settings.visibility_tag }}",
+    redirectTarget: "{{ block.settings.redirect_target }}"
+  };
+
+  // Fetch DB-driven settings from the app proxy and merge over the theme editor defaults.
+  // The JS scripts (sharecart-button.js etc.) wait for this promise before initialising.
+  // NOTE: app proxy strips /apps/sharecart prefix, so /apps/sharecart/api/... → server /api/...
+  window.__sharecartReady = fetch('/apps/sharecart/api/storefront/config', { credentials: 'same-origin' })
+    .then(function(r) { return r.ok ? r.json() : {}; })
+    .then(function(cfg) {
+      var sc = window.__sharecart;
+      if (cfg.visibilityMode  !== undefined) sc.visibilityMode    = cfg.visibilityMode;
+      if (cfg.visibilityTag   !== undefined) sc.requiredTag       = cfg.visibilityTag;
+      if (cfg.redirectTarget  !== undefined) sc.redirectTarget    = cfg.redirectTarget;
+      if (cfg.showNameField        !== undefined) sc.showNameField        = cfg.showNameField;
+      if (cfg.showDescriptionField !== undefined) sc.showDescriptionField = cfg.showDescriptionField;
+      if (cfg.showPromoField       !== undefined) sc.showPromoField       = cfg.showPromoField;
+      if (cfg.showExpiryField      !== undefined) sc.showExpiryField      = cfg.showExpiryField;
+      if (cfg.showSaveOption       !== undefined) sc.showSaveOption       = cfg.showSaveOption;
+      if (cfg.defaultShareMessage  !== undefined) sc.defaultShareMessage  = cfg.defaultShareMessage;
+      // Button appearance (overrides theme editor defaults)
+      if (cfg.buttonLabel    !== undefined) sc.buttonLabel    = cfg.buttonLabel;
+      if (cfg.buttonColor    !== undefined) sc.buttonColor    = cfg.buttonColor;
+      if (cfg.buttonTextColor !== undefined) sc.buttonTextColor = cfg.buttonTextColor;
+      if (cfg.enabledChannels !== undefined) sc.enabledChannels = cfg.enabledChannels;
+      return sc;
+    })
+    .catch(function() { return window.__sharecart; }); // fall back to theme editor values on error
+</script>
+
+<script src="{{ 'sharecart-params.js' | asset_url }}" defer></script>
+<script src="{{ 'sharecart-restore.js' | asset_url }}" defer></script>
+<script src="{{ 'sharecart-button.js' | asset_url }}" defer></script>
+<script src="{{ 'sharecart-drawer.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "ShareCart Pro Scripts",
+  "target": "head",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable ShareCart Pro",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Share Form Fields"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_name_field",
+      "label": "Show cart name field",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description_field",
+      "label": "Show description field",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_promo_field",
+      "label": "Show promo code field",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_expiry_field",
+      "label": "Show expiry field",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_save_option",
+      "label": "Show save cart option",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Visibility"
+    },
+    {
+      "type": "select",
+      "id": "visibility_mode",
+      "label": "Who can see the share button?",
+      "options": [
+        { "value": "all", "label": "All visitors" },
+        { "value": "logged_in", "label": "Logged-in customers only" },
+        { "value": "tagged", "label": "Customers with a specific tag" }
+      ],
+      "default": "logged_in"
+    },
+    {
+      "type": "text",
+      "id": "visibility_tag",
+      "label": "Required customer tag",
+      "info": "Only used when visibility is set to 'Customers with a specific tag'"
+    },
+    {
+      "type": "header",
+      "content": "Redirect"
+    },
+    {
+      "type": "select",
+      "id": "redirect_target",
+      "label": "Where should shared links redirect?",
+      "options": [
+        { "value": "cart", "label": "Cart page" },
+        { "value": "checkout", "label": "Checkout" }
+      ],
+      "default": "cart"
+    }
+  ]
+}
+{% endschema %}

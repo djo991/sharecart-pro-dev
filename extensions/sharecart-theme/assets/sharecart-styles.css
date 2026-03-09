@@ -1,0 +1,269 @@
+/* ShareCart Pro — Storefront Styles */
+
+/* Modal overlay */
+.sharecart-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* Modal container */
+.sharecart-modal {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.sharecart-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.sharecart-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.sharecart-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  line-height: 1;
+}
+
+.sharecart-modal-close:hover {
+  color: #1a1a1a;
+}
+
+.sharecart-modal-body {
+  padding: 24px;
+}
+
+/* Loading state */
+.sharecart-loading {
+  text-align: center;
+  padding: 20px 0;
+  color: #666;
+}
+
+/* Error state */
+.sharecart-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+/* Link copy row */
+.sharecart-link-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.sharecart-link-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #374151;
+  background: #f9fafb;
+  min-width: 0;
+}
+
+.sharecart-copy-btn {
+  padding: 10px 16px;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.sharecart-copy-btn:hover {
+  background: #333;
+}
+
+/* Channel grid */
+.sharecart-channel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 12px;
+}
+
+.sharecart-channel-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  text-decoration: none;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.sharecart-channel-btn:hover {
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.sharecart-channel-icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* Form fields */
+.sharecart-form-fields {
+  margin-bottom: 16px;
+}
+
+.sharecart-form-group {
+  margin-bottom: 12px;
+}
+
+.sharecart-form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.sharecart-form-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1a1a1a;
+  background: #fff;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.sharecart-form-input:focus {
+  outline: none;
+  border-color: #1a1a1a;
+}
+
+textarea.sharecart-form-input {
+  resize: vertical;
+  min-height: 48px;
+}
+
+select.sharecart-form-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+/* Generate button */
+.sharecart-generate-btn {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 4px;
+}
+
+.sharecart-generate-btn:hover {
+  background: #333;
+}
+
+/* Regenerate link */
+.sharecart-regenerate {
+  display: block;
+  text-align: center;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #6b7280;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.sharecart-regenerate:hover {
+  color: #1a1a1a;
+}
+
+/* Spinner */
+.sharecart-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e5e5e5;
+  border-top-color: #1a1a1a;
+  border-radius: 50%;
+  animation: sharecart-spin 0.6s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes sharecart-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Button hover */
+.sharecart-btn:hover {
+  opacity: 0.85;
+}
+
+/* Toast notification */
+.sharecart-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: sharecart-fade-in 0.2s ease;
+}
+
+@keyframes sharecart-fade-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}

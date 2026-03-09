@@ -1,0 +1,8 @@
+{
+  "name": "sharecart-customer-account",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@shopify/ui-extensions": "^2025.1.0"
+  }
+}

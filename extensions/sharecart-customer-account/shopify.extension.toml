@@ -1,0 +1,33 @@
+api_version = "2025-10"
+
+# ── Full "Shared Carts" page in customer account navigation ───────────────────
+[[extensions]]
+uid = "sharecart-customer-account-page"
+type = "ui_extension"
+name = "Shared Carts"
+handle = "sharecart-customer-account"
+
+[[extensions.targeting]]
+module = "./src/SharedCartsPage.jsx"
+target = "customer-account.page.render"
+
+[extensions.capabilities]
+api_access = true
+network_access = true
+
+# ── Compact widget on the account overview / profile page ─────────────────────
+[[extensions]]
+uid = "sharecart-account-profile-widget"
+type = "ui_extension"
+name = "Shared Carts Widget"
+handle = "sharecart-account-widget"
+
+[[extensions.targeting]]
+module = "./src/SharedCartsWidget.jsx"
+target = "customer-account.profile.block.render"
+
+default_placement = "PROFILE2"
+
+[extensions.capabilities]
+api_access = true
+network_access = true

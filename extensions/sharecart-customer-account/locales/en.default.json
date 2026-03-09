@@ -1,0 +1,23 @@
+{
+  "heading": "Shared Carts",
+  "empty": "You haven't created any shared carts yet.",
+  "loading": "Loading your shared carts...",
+  "error": "Could not load shared carts. Please try again.",
+  "status_active": "Active",
+  "status_paused": "Paused",
+  "status_expired": "Expired",
+  "copy_link": "Copy link",
+  "link_copied": "Link copied!",
+  "pause": "Pause",
+  "resume": "Resume",
+  "delete": "Delete",
+  "delete_confirm": "Are you sure you want to delete this shared cart?",
+  "items_label": "Items",
+  "promo_label": "Promo code",
+  "impressions_label": "Views",
+  "conversions_label": "Conversions",
+  "orders_label": "Orders",
+  "expires_label": "Expires",
+  "never_expires": "Never",
+  "created_label": "Created"
+}
