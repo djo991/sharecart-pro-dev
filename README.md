@@ -61,7 +61,7 @@ DIRECT_URL="postgresql://postgres.kbxclbfvyhwvlnuksbfl:[PASSWORD]@aws-1-eu-centr
 
 ## Project Structure
 
-- `app/routes/`: Main application pages, API endpoints, and webhook handlers.
+- `app/routes/`: Main application pages, API endpoints, and webhook handlers. 
   - `api.share.jsx`: App Proxy endpoint for creating share links.
   - `api.event.jsx`: App Proxy endpoint for logging impressions/clicks.
   - `webhooks.jsx`: Handles GDPR redactions, app uninstalls, and order tracking.
