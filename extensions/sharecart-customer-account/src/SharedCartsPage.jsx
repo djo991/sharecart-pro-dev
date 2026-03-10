@@ -105,27 +105,55 @@ export default async function () {
     };
 
     // ── Row 1: title + status badge ───────────────────────────────────────
-    var titleRow = el('s-stack', { direction: 'inline', alignItems: 'center', gap: 'small' },
-      el('s-text', { type: 'strong' }, cart.name || 'Shared Cart'),
+    var titleRow = el('s-stack', { direction: 'inline', alignItems: 'center', inlineAlignment: 'space-between', blockAlignment: 'start', minInlineSize: '100%' },
+      el('s-stack', { direction: 'column', gap: 'small-300' },
+        el('s-text', { type: 'strong', size: 'large' }, cart.name || 'Shared Cart'),
+        el('s-text', { tone: 'subdued', type: 'small' }, 'Created ' + formatDate(cart.createdAt))
+      ),
       el('s-badge', { tone: badgeTone }, status)
     );
 
-    // ── Row 2: meta info — single muted line ──────────────────────────────
-    var metaParts = ['Created ' + formatDate(cart.createdAt)];
+    // ── Row 2: Metrics Block ──────────────────────────────
+    var metricsParts = [];
     if (itemCount > 0) {
-      metaParts.push(itemCount + ' item' + (itemCount !== 1 ? 's' : ''));
+      metricsParts.push(
+        el('s-stack', { direction: 'column', gap: 'small-300' },
+          el('s-text', { type: 'strong', size: 'large' }, itemCount),
+          el('s-text', { tone: 'subdued', type: 'small' }, 'Items')
+        )
+      );
     }
     if (cart.impressions > 0) {
-      metaParts.push(cart.impressions + ' view' + (cart.impressions !== 1 ? 's' : ''));
+      metricsParts.push(
+        el('s-stack', { direction: 'column', gap: 'small-300' },
+          el('s-text', { type: 'strong', size: 'large' }, cart.impressions),
+          el('s-text', { tone: 'subdued', type: 'small' }, 'Views')
+        )
+      );
     }
     if (cart.completedPurchases > 0) {
-      metaParts.push(cart.completedPurchases + ' order' + (cart.completedPurchases !== 1 ? 's' : ''));
+      metricsParts.push(
+        el('s-stack', { direction: 'column', gap: 'small-300' },
+          el('s-text', { type: 'strong', size: 'large' }, cart.completedPurchases),
+          el('s-text', { tone: 'subdued', type: 'small' }, 'Orders')
+        )
+      );
     }
-    var metaRow = el('s-text', { tone: 'subdued', type: 'small' }, metaParts.join(' \u00b7 '));
+
+    var metricsBlock = null;
+    if (metricsParts.length > 0) {
+      metricsBlock = el('s-box', {
+        background: 'subdued',
+        padding: 'base',
+        cornerRadius: 'base',
+      },
+        el('s-stack', { direction: 'inline', gap: 'base', wrap: 'wrap' }, metricsParts)
+      );
+    }
 
     // ── Row 3: action buttons with icons ──────────────────────────────────
     var copyBtn = el('s-button', {
-      variant: 'secondary',
+      variant: 'primary', // Make this primary to stand out
       command: '--copy',
       commandFor: clipId,
     },
@@ -153,7 +181,7 @@ export default async function () {
     );
 
     var detailsBtn = el('s-button', {
-      variant: 'plain',
+      variant: 'secondary',
       onclick: function () {
         setState({ expandedId: isExpanded ? null : cartId });
       },
@@ -162,11 +190,14 @@ export default async function () {
       isExpanded ? ' Hide' : ' Details'
     );
 
-    var btnItems = [copyBtn];
-    if (toggleBtn) btnItems.push(toggleBtn);
-    btnItems.push(deleteBtn, detailsBtn);
+    var btnGroupMain = [copyBtn];
+    if (toggleBtn) btnGroupMain.push(toggleBtn);
 
-    var buttonRow = el('s-stack', { direction: 'inline', gap: 'small', alignItems: 'center' }, btnItems);
+    // Group primary actions on left, destructive/details on right
+    var buttonRow = el('s-stack', { direction: 'inline', inlineAlignment: 'space-between', minInlineSize: '100%', gap: 'small', wrap: 'wrap' },
+      el('s-stack', { direction: 'inline', gap: 'small' }, btnGroupMain),
+      el('s-stack', { direction: 'inline', gap: 'small' }, [detailsBtn, deleteBtn])
+    );
 
     // ── Expandable details section ────────────────────────────────────────
     var detailSection = null;
@@ -175,7 +206,7 @@ export default async function () {
 
       // Items list with thumbnails
       if (cart.items && cart.items.length > 0) {
-        var itemEls = [el('s-text', { type: 'strong' }, 'Items')];
+        var itemEls = [el('s-text', { type: 'strong' }, 'Cart Contents')];
 
         cart.items.forEach(function (item) {
           var name = item.title || item.handle || ('Product #' + item.variantId);
@@ -187,25 +218,30 @@ export default async function () {
           var rowParts = [];
           if (item.image) {
             rowParts.push(
-              el('s-box', { maxInlineSize: 50, cornerRadius: 'base', overflow: 'hidden' },
+              el('s-box', { maxInlineSize: 40, cornerRadius: 'base', overflow: 'hidden' },
                 el('s-image', { source: item.image, alt: name, aspectRatio: 1, fit: 'cover' })
               )
             );
           }
           rowParts.push(
-            el('s-stack', { gap: 'small-300' },
-              el('s-text', {}, name + varLabel),
+            el('s-stack', { direction: 'column', gap: 'small-100' },
+              el('s-text', { type: 'strong' }, name + varLabel),
               el('s-text', { tone: 'subdued', type: 'small' }, subLine)
             )
           );
 
           itemEls.push(
-            el('s-stack', { direction: 'inline', alignItems: 'center', gap: 'base' }, rowParts)
+            el('s-box', { paddingBlockStart: 'small', paddingBlockEnd: 'small', borderBlockEnd: 'base' },
+              el('s-stack', { direction: 'inline', alignItems: 'center', gap: 'base' }, rowParts)
+            )
           );
         });
 
-        parts.push(el('s-stack', { gap: 'small' }, itemEls));
+        parts.push(el('s-stack', { direction: 'column', gap: 'small' }, itemEls));
       }
+
+      // Metadata section (Promo / Expiry / Link)
+      var metaBoxParts = [];
 
       // Promo codes
       if (cart.promoCodes && cart.promoCodes.length > 0) {
@@ -213,20 +249,44 @@ export default async function () {
         cart.promoCodes.forEach(function (p) {
           promoEls.push(el('s-badge', { tone: 'info' }, p.code));
         });
-        parts.push(
+        metaBoxParts.push(
           el('s-stack', { direction: 'inline', alignItems: 'center', gap: 'small' }, promoEls)
         );
       }
 
       // Expiry
       if (cart.expiresAt) {
-        parts.push(
+        metaBoxParts.push(
           el('s-text', { tone: 'subdued', type: 'small' },
             (status === 'Expired' ? 'Expired ' : 'Expires ') + formatDate(cart.expiresAt)
           )
         );
       } else if (cart.neverExpires) {
-        parts.push(el('s-text', { tone: 'subdued', type: 'small' }, 'Never expires'));
+        metaBoxParts.push(el('s-text', { tone: 'subdued', type: 'small' }, 'Never expires'));
+      }
+
+      // Share URL & QR
+      if (cartUrl) {
+        metaBoxParts.push(
+          el('s-stack', { direction: 'column', gap: 'base' },
+            el('s-stack', { direction: 'column', gap: 'small-300' },
+              el('s-text', { type: 'strong' }, 'Share link URL'),
+              el('s-text', { tone: 'subdued', type: 'small' }, cartUrl)
+            ),
+            el('s-box', { padding: 'base', background: 'surface', cornerRadius: 'base', border: 'base' },
+              el('s-stack', { direction: 'column', alignItems: 'center', gap: 'small' },
+                el('s-text', { type: 'strong', tone: 'subdued' }, 'Scan QR Code'),
+                el('s-box', { maxInlineSize: 150 },
+                  el('s-qr-code', { content: cartUrl })
+                )
+              )
+            )
+          )
+        );
+      }
+
+      if (metaBoxParts.length > 0) {
+        parts.push(el('s-stack', { direction: 'column', gap: 'base', minInlineSize: '100%' }, metaBoxParts));
       }
 
       // Orders placed via this cart
@@ -238,25 +298,9 @@ export default async function () {
           lineParts.push(formatDate(order.createdAt));
           orderEls.push(el('s-text', { type: 'small' }, lineParts.join(' \u00b7 ')));
         });
-        parts.push(el('s-stack', { gap: 'small-200' }, orderEls));
-      }
-
-      // Share URL
-      if (cartUrl) {
         parts.push(
-          el('s-stack', { gap: 'base' },
-            el('s-stack', { gap: 'small-300' },
-              el('s-text', { type: 'strong' }, 'Share link'),
-              el('s-text', { tone: 'subdued', type: 'small' }, cartUrl)
-            ),
-            el('s-box', { padding: 'base', background: 'surface', borderRadius: 'base' },
-              el('s-stack', { alignItems: 'center', inlineAlignment: 'center', gap: 'small' },
-                el('s-text', { type: 'strong', tone: 'subdued' }, 'Scan QR Code'),
-                el('s-box', { maxInlineSize: 150 },
-                  el('s-qr-code', { content: cartUrl })
-                )
-              )
-            )
+          el('s-box', { background: 'surface', padding: 'base', cornerRadius: 'base', border: 'base' },
+            el('s-stack', { direction: 'column', gap: 'small-200' }, orderEls)
           )
         );
       }
@@ -264,21 +308,34 @@ export default async function () {
       detailSection = el('s-box', {
         background: 'subdued',
         padding: 'base',
-        borderRadius: 'base',
+        cornerRadius: 'base',
+        minInlineSize: '100%',
+        marginBlockStart: 'base'
       },
-        el('s-stack', { gap: 'base' }, parts)
+        el('s-stack', { direction: 'column', gap: 'base' }, parts)
       );
     }
 
-    return el('s-section', {},
+    var cardParams = [
       clipItem,
-      el('s-stack', { gap: 'small' },
+      el('s-stack', { direction: 'column', gap: 'base', minInlineSize: '100%' },
         titleRow,
-        metaRow,
+        metricsBlock,
         buttonRow,
         detailSection
       )
-    );
+    ];
+
+    // Filter out nulls (like metricsBlock if empty)
+    cardParams = cardParams.filter(Boolean);
+
+    return el('s-box', {
+      border: 'base',
+      cornerRadius: 'base',
+      padding: 'base',
+      background: 'default',
+      minInlineSize: '100%',
+    }, ...cardParams);
   }
 
   // ── full UI ───────────────────────────────────────────────────────────────
@@ -301,9 +358,12 @@ export default async function () {
 
     if (state.carts.length === 0) {
       return el('s-page', { title: 'Shared Carts' },
-        el('s-stack', { gap: 'base' },
+        el('s-banner', {
+          title: 'No shared carts yet',
+          status: 'info',
+        },
           el('s-text', { tone: 'subdued' },
-            'No shared carts yet. Share your cart from the cart page to see them here.'
+            'Build a cart while browsing the store and click the share button to get started. Your shared carts will appear here for you to manage.'
           )
         )
       );
