@@ -88,6 +88,10 @@ export default async function () {
     var isLoading = state.actionLoading === cart.id;
     var isCopied = state.copiedId === cart.id;
 
+    var badgeTone = status === 'Active' ? 'success'
+      : status === 'Expired' ? 'critical'
+        : 'warning'; // Paused
+
     var cartId = cart.id;
     var cartUrl = cart.shareUrl;
     var cartActive = cart.isActive;
@@ -101,24 +105,41 @@ export default async function () {
       setTimeout(function () { setState({ copiedId: null }); }, 2000);
     };
 
-    // ── Row 1: Subdued Top Header (Status + Date) ─────────────────────────
-    var headerBlock = el('s-box', {
-      background: 'subdued',
-      padding: 'base',
-      borderBlockEnd: 'base'
+    // ── Row 1: Top Header (Status Badge + Icons) ─────────────────────────
+    var toggleBtn = null;
+    if (status !== 'Expired') {
+      toggleBtn = el('s-button', {
+        variant: 'secondary',
+        loading: isLoading,
+        accessibilityLabel: cartActive ? 'Pause' : 'Resume',
+        onclick: function () { handleToggle(cartId); },
+      }, el('s-icon', { type: cartActive ? 'pause' : 'play' }));
+    }
+
+    var deleteBtn = el('s-button', {
+      variant: 'secondary',
+      tone: 'critical',
+      loading: isLoading,
+      accessibilityLabel: 'Delete',
+      onclick: function () { handleDelete(cartId); },
+    }, el('s-icon', { type: 'delete' }));
+
+    var quickActions = [];
+    if (toggleBtn) quickActions.push(toggleBtn);
+    quickActions.push(deleteBtn);
+
+    var headerBlock = el('s-stack', {
+      direction: 'inline',
+      alignItems: 'center',
+      inlineAlignment: 'space-between',
+      blockAlignment: 'center',
+      minInlineSize: '100%'
     },
-      el('s-stack', { direction: 'block', gap: 'small-100' },
-        el('s-stack', { direction: 'inline', alignItems: 'center', inlineAlignment: 'space-between', blockAlignment: 'start', minInlineSize: '100%' },
-          el('s-stack', { direction: 'inline', gap: 'small-300', alignItems: 'center' },
-            status === 'Active' ? el('s-icon', { type: 'check', tone: 'success' }) : null,
-            el('s-text', { type: 'strong', size: 'small' }, status)
-          ),
-          el('s-text', { tone: 'subdued', type: 'small' }, formatDate(cart.createdAt))
-        )
-      )
+      el('s-badge', { tone: badgeTone }, status),
+      el('s-stack', { direction: 'inline', gap: 'small-300' }, quickActions)
     );
 
-    // ── Row 2: Main Image (Fallbacks to Empty state) ──────────────────────
+    // ── Row 2: Main Image (Fallbacks to entirely hidden) ─────────────────
     var firstImage = null;
     if (cart.items && cart.items.length > 0) {
       for (var i = 0; i < cart.items.length; i++) {
@@ -131,21 +152,15 @@ export default async function () {
 
     var imageBlock = null;
     if (firstImage) {
-      imageBlock = el('s-box', { padding: 'large', overflow: 'hidden' },
-        el('s-stack', { direction: 'column', alignItems: 'center' },
-          el('s-image', { source: firstImage, alt: cart.name, fit: 'cover' })
-        )
-      );
-    } else {
-      imageBlock = el('s-box', { padding: 'large', background: 'subdued', minBlockSize: 150 },
-        el('s-stack', { direction: 'column', alignItems: 'center', inlineAlignment: 'center', minBlockSize: '100%' },
-          el('s-icon', { type: 'cart', tone: 'subdued' })
+      imageBlock = el('s-box', { overflow: 'hidden', cornerRadius: 'base' },
+        el('s-stack', { direction: 'column', alignItems: 'center', inlineAlignment: 'center' },
+          el('s-image', { source: firstImage, alt: cart.name || 'Shared Cart', fit: 'cover', aspectRatio: 1 })
         )
       );
     }
 
-    // ── Row 3: Meta Info (Name, Items, Metrics) ───────────────────────────
-    var metaParts = [];
+    // ── Row 3: Meta Info (Name, Date, Items, Metrics) ───────────────────
+    var metaParts = [formatDate(cart.createdAt)];
     if (itemCount > 0) {
       metaParts.push(itemCount + ' item' + (itemCount !== 1 ? 's' : ''));
     }
@@ -156,44 +171,25 @@ export default async function () {
       metaParts.push(cart.completedPurchases + ' order' + (cart.completedPurchases !== 1 ? 's' : ''));
     }
 
-    var metaBlock = el('s-box', { paddingInlineStart: 'base', paddingInlineEnd: 'base' },
-      el('s-stack', { direction: 'column', gap: 'small-100' },
-        el('s-text', { type: 'strong' }, cart.name || 'Shared Cart'),
-        el('s-text', { tone: 'subdued', type: 'small' }, metaParts.join(' \u00b7 '))
-      )
+    var metaBlock = el('s-stack', { direction: 'column', gap: 'small-100' },
+      el('s-text', { type: 'strong' }, cart.name || 'Shared Cart'),
+      el('s-text', { tone: 'subdued', type: 'small' }, metaParts.join(' \u00b7 '))
     );
 
-    // ── Row 4: Action Buttons ───────────────────────────────────────────
+    // ── Row 4: Action Buttons (Equal size) ──────────────────────────────
     var copyBtn = el('s-button', {
       variant: 'primary',
       command: '--copy',
       commandFor: clipId,
+      fullWidth: true
     },
       el('s-icon', { type: 'clipboard' }),
       isCopied ? ' Copied!' : ' Copy link'
     );
 
-    var toggleBtn = null;
-    if (status !== 'Expired') {
-      toggleBtn = el('s-button', {
-        variant: 'secondary',
-        loading: isLoading,
-        onclick: function () { handleToggle(cartId); },
-      }, cartActive ? 'Pause' : 'Resume');
-    }
-
-    var deleteBtn = el('s-button', {
-      variant: 'secondary',
-      tone: 'critical',
-      loading: isLoading,
-      onclick: function () { handleDelete(cartId); },
-    },
-      el('s-icon', { type: 'delete' }),
-      ' Delete'
-    );
-
     var detailsBtn = el('s-button', {
       variant: 'secondary',
+      fullWidth: true,
       onclick: function () {
         setState({ expandedId: isExpanded ? null : cartId });
       },
@@ -202,15 +198,9 @@ export default async function () {
       isExpanded ? ' Hide' : ' Details'
     );
 
-    var secondaryActions = [];
-    if (toggleBtn) secondaryActions.push(toggleBtn);
-    secondaryActions.push(deleteBtn);
-
-    var buttonBlock = el('s-box', { padding: 'base' },
-      el('s-stack', { direction: 'column', gap: 'small' },
-        el('s-stack', { direction: 'inline', gap: 'base', minInlineSize: '100%', blockAlignment: 'stretch', wrap: 'wrap' }, [copyBtn, detailsBtn]),
-        el('s-stack', { direction: 'inline', gap: 'base', minInlineSize: '100%', wrap: 'wrap' }, secondaryActions)
-      )
+    var buttonBlock = el('s-grid', { gridTemplateColumns: '1fr 1fr', gap: 'small', minInlineSize: '100%' },
+      el('s-grid-item', {}, copyBtn),
+      el('s-grid-item', {}, detailsBtn)
     );
 
     // ── Expandable details section ────────────────────────────────────────
@@ -322,7 +312,7 @@ export default async function () {
       detailSection = el('s-box', {
         background: 'subdued',
         padding: 'base',
-        borderBlockStart: 'base',
+        cornerRadius: 'base',
         minInlineSize: '100%'
       },
         el('s-stack', { direction: 'column', gap: 'base' }, parts)
@@ -331,7 +321,7 @@ export default async function () {
 
     var cardParams = [
       clipItem,
-      el('s-stack', { direction: 'column', minInlineSize: '100%' },
+      el('s-stack', { direction: 'column', gap: 'base', minInlineSize: '100%' },
         headerBlock,
         imageBlock,
         metaBlock,
@@ -346,8 +336,8 @@ export default async function () {
     return el('s-box', {
       border: 'base',
       cornerRadius: 'base',
-      background: 'default',
-      overflow: 'hidden' // So the subdued header doesn't leak out of the border-radius
+      padding: 'base',
+      background: 'default'
     }, ...cardParams);
   }
 
