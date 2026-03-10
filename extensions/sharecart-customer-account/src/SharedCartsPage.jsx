@@ -81,15 +81,12 @@ export default async function () {
   }
 
   // ── card builder ──────────────────────────────────────────────────────────
+  // ── card builder ──────────────────────────────────────────────────────────
   function buildCartCard(cart) {
     var status = getStatus(cart);
     var isExpanded = state.expandedId === cart.id;
     var isLoading = state.actionLoading === cart.id;
     var isCopied = state.copiedId === cart.id;
-
-    var badgeTone = status === 'Active' ? 'success'
-      : status === 'Expired' ? 'critical'
-        : 'warning'; // Paused
 
     var cartId = cart.id;
     var cartUrl = cart.shareUrl;
@@ -104,56 +101,71 @@ export default async function () {
       setTimeout(function () { setState({ copiedId: null }); }, 2000);
     };
 
-    // ── Row 1: title + status badge ───────────────────────────────────────
-    var titleRow = el('s-stack', { direction: 'inline', alignItems: 'center', inlineAlignment: 'space-between', blockAlignment: 'start', minInlineSize: '100%' },
-      el('s-stack', { direction: 'column', gap: 'small-300' },
-        el('s-text', { type: 'strong', size: 'large' }, cart.name || 'Shared Cart'),
-        el('s-text', { tone: 'subdued', type: 'small' }, 'Created ' + formatDate(cart.createdAt))
-      ),
-      el('s-badge', { tone: badgeTone }, status)
+    // ── Row 1: Subdued Top Header (Status + Date) ─────────────────────────
+    var headerBlock = el('s-box', {
+      background: 'subdued',
+      padding: 'base',
+      borderBlockEnd: 'base'
+    },
+      el('s-stack', { direction: 'block', gap: 'small-100' },
+        el('s-stack', { direction: 'inline', alignItems: 'center', inlineAlignment: 'space-between', blockAlignment: 'start', minInlineSize: '100%' },
+          el('s-stack', { direction: 'inline', gap: 'small-300', alignItems: 'center' },
+            status === 'Active' ? el('s-icon', { type: 'check', tone: 'success' }) : null,
+            el('s-text', { type: 'strong', size: 'small' }, status)
+          ),
+          el('s-text', { tone: 'subdued', type: 'small' }, formatDate(cart.createdAt))
+        )
+      )
     );
 
-    // ── Row 2: Metrics Block ──────────────────────────────
-    var metricsParts = [];
-    if (itemCount > 0) {
-      metricsParts.push(
-        el('s-stack', { direction: 'column', gap: 'small-300' },
-          el('s-text', { type: 'strong', size: 'large' }, itemCount),
-          el('s-text', { tone: 'subdued', type: 'small' }, 'Items')
+    // ── Row 2: Main Image (Fallbacks to Empty state) ──────────────────────
+    var firstImage = null;
+    if (cart.items && cart.items.length > 0) {
+      for (var i = 0; i < cart.items.length; i++) {
+        if (cart.items[i].image) {
+          firstImage = cart.items[i].image;
+          break;
+        }
+      }
+    }
+
+    var imageBlock = null;
+    if (firstImage) {
+      imageBlock = el('s-box', { padding: 'large', overflow: 'hidden' },
+        el('s-stack', { direction: 'column', alignItems: 'center' },
+          el('s-image', { source: firstImage, alt: cart.name, fit: 'cover' })
         )
       );
+    } else {
+      imageBlock = el('s-box', { padding: 'large', background: 'subdued', minBlockSize: 150 },
+        el('s-stack', { direction: 'column', alignItems: 'center', inlineAlignment: 'center', minBlockSize: '100%' },
+          el('s-icon', { type: 'cart', tone: 'subdued' })
+        )
+      );
+    }
+
+    // ── Row 3: Meta Info (Name, Items, Metrics) ───────────────────────────
+    var metaParts = [];
+    if (itemCount > 0) {
+      metaParts.push(itemCount + ' item' + (itemCount !== 1 ? 's' : ''));
     }
     if (cart.impressions > 0) {
-      metricsParts.push(
-        el('s-stack', { direction: 'column', gap: 'small-300' },
-          el('s-text', { type: 'strong', size: 'large' }, cart.impressions),
-          el('s-text', { tone: 'subdued', type: 'small' }, 'Views')
-        )
-      );
+      metaParts.push(cart.impressions + ' view' + (cart.impressions !== 1 ? 's' : ''));
     }
     if (cart.completedPurchases > 0) {
-      metricsParts.push(
-        el('s-stack', { direction: 'column', gap: 'small-300' },
-          el('s-text', { type: 'strong', size: 'large' }, cart.completedPurchases),
-          el('s-text', { tone: 'subdued', type: 'small' }, 'Orders')
-        )
-      );
+      metaParts.push(cart.completedPurchases + ' order' + (cart.completedPurchases !== 1 ? 's' : ''));
     }
 
-    var metricsBlock = null;
-    if (metricsParts.length > 0) {
-      metricsBlock = el('s-box', {
-        background: 'subdued',
-        padding: 'base',
-        cornerRadius: 'base',
-      },
-        el('s-stack', { direction: 'inline', gap: 'base', wrap: 'wrap' }, metricsParts)
-      );
-    }
+    var metaBlock = el('s-box', { paddingInlineStart: 'base', paddingInlineEnd: 'base' },
+      el('s-stack', { direction: 'column', gap: 'small-100' },
+        el('s-text', { type: 'strong' }, cart.name || 'Shared Cart'),
+        el('s-text', { tone: 'subdued', type: 'small' }, metaParts.join(' \u00b7 '))
+      )
+    );
 
-    // ── Row 3: action buttons with icons ──────────────────────────────────
+    // ── Row 4: Action Buttons ───────────────────────────────────────────
     var copyBtn = el('s-button', {
-      variant: 'primary', // Make this primary to stand out
+      variant: 'primary',
       command: '--copy',
       commandFor: clipId,
     },
@@ -190,13 +202,15 @@ export default async function () {
       isExpanded ? ' Hide' : ' Details'
     );
 
-    var btnGroupMain = [copyBtn];
-    if (toggleBtn) btnGroupMain.push(toggleBtn);
+    var secondaryActions = [];
+    if (toggleBtn) secondaryActions.push(toggleBtn);
+    secondaryActions.push(deleteBtn);
 
-    // Group primary actions on left, destructive/details on right
-    var buttonRow = el('s-stack', { direction: 'inline', inlineAlignment: 'space-between', minInlineSize: '100%', gap: 'small', wrap: 'wrap' },
-      el('s-stack', { direction: 'inline', gap: 'small' }, btnGroupMain),
-      el('s-stack', { direction: 'inline', gap: 'small' }, [detailsBtn, deleteBtn])
+    var buttonBlock = el('s-box', { padding: 'base' },
+      el('s-stack', { direction: 'column', gap: 'small' },
+        el('s-stack', { direction: 'inline', gap: 'base', minInlineSize: '100%', blockAlignment: 'stretch', wrap: 'wrap' }, [copyBtn, detailsBtn]),
+        el('s-stack', { direction: 'inline', gap: 'base', minInlineSize: '100%', wrap: 'wrap' }, secondaryActions)
+      )
     );
 
     // ── Expandable details section ────────────────────────────────────────
@@ -308,9 +322,8 @@ export default async function () {
       detailSection = el('s-box', {
         background: 'subdued',
         padding: 'base',
-        cornerRadius: 'base',
-        minInlineSize: '100%',
-        marginBlockStart: 'base'
+        borderBlockStart: 'base',
+        minInlineSize: '100%'
       },
         el('s-stack', { direction: 'column', gap: 'base' }, parts)
       );
@@ -318,23 +331,23 @@ export default async function () {
 
     var cardParams = [
       clipItem,
-      el('s-stack', { direction: 'column', gap: 'base', minInlineSize: '100%' },
-        titleRow,
-        metricsBlock,
-        buttonRow,
+      el('s-stack', { direction: 'column', minInlineSize: '100%' },
+        headerBlock,
+        imageBlock,
+        metaBlock,
+        buttonBlock,
         detailSection
       )
     ];
 
-    // Filter out nulls (like metricsBlock if empty)
+    // Filter out nulls
     cardParams = cardParams.filter(Boolean);
 
     return el('s-box', {
       border: 'base',
       cornerRadius: 'base',
-      padding: 'base',
       background: 'default',
-      minInlineSize: '100%',
+      overflow: 'hidden' // So the subdued header doesn't leak out of the border-radius
     }, ...cardParams);
   }
 
@@ -370,12 +383,18 @@ export default async function () {
     }
 
     var cardNodes = state.carts.map(function (cart) {
-      return buildCartCard(cart);
+      return el('s-grid-item', {}, buildCartCard(cart));
     });
+
+    // Wrap cards in a responsive CSS Grid
+    var gridContainer = el('s-grid', {
+      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+      gap: 'base'
+    }, ...cardNodes);
 
     var pagination = null;
     if (state.totalPages > 1) {
-      pagination = el('s-stack', { direction: 'inline', gap: 'base', alignItems: 'center' },
+      pagination = el('s-stack', { direction: 'inline', gap: 'base', alignItems: 'center', justification: 'center' },
         el('s-button', {
           variant: 'secondary',
           disabled: state.page <= 1,
@@ -397,8 +416,8 @@ export default async function () {
     }
 
     return el('s-page', { title: 'Shared Carts' },
-      el('s-stack', { gap: 'base' },
-        cardNodes,
+      el('s-stack', { direction: 'column', gap: 'large' },
+        gridContainer,
         pagination
       )
     );
