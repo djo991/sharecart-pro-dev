@@ -155,8 +155,8 @@ export async function getTimeseriesAnalytics(shopDomain, days = 30, linkId = nul
   for (const event of events) {
     const dateStr = event.createdAt.toISOString().split('T')[0];
     if (timeseries[dateStr]) {
-      if (event.eventType === 'view') timeseries[dateStr].views++;
-      if (event.eventType === 'restore') timeseries[dateStr].restores++;
+      if (event.eventType === 'opened') timeseries[dateStr].views++;
+      if (event.eventType === 'cart_restored') timeseries[dateStr].restores++;
       if (event.eventType === 'checkout') timeseries[dateStr].checkouts++;
       if (event.eventType === 'purchase' || event.eventType === 'order_placed') {
         timeseries[dateStr].purchases++;

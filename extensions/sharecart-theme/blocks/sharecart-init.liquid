@@ -16,7 +16,7 @@
     customerId: "{{ customer.id | default: '' }}",
     customerEmail: "{{ customer.email | default: '' }}",
     customerTags: {% if customer %}{{ customer.tags | json }}{% else %}[]{% endif %},
-    stylesUrl: "{{ 'sharecart-styles.css' | asset_url }}",
+    stylesUrl: "{{ 'sharecart-styles.css' | asset_url | append: '&v=2' }}",
     // Fallback values from theme editor (overridden by DB config below)
     showNameField: {{ block.settings.show_name_field }},
     showDescriptionField: {{ block.settings.show_description_field }},
@@ -54,10 +54,10 @@
     .catch(function() { return window.__sharecart; }); // fall back to theme editor values on error
 </script>
 
-<script src="{{ 'sharecart-params.js' | asset_url }}" defer></script>
-<script src="{{ 'sharecart-restore.js' | asset_url }}" defer></script>
-<script src="{{ 'sharecart-button.js' | asset_url }}" defer></script>
-<script src="{{ 'sharecart-drawer.js' | asset_url }}" defer></script>
+<script src="{{ 'sharecart-params.js' | asset_url | append: '&v=2' }}" defer></script>
+<script src="{{ 'sharecart-restore.js' | asset_url | append: '&v=2' }}" defer></script>
+<script src="{{ 'sharecart-button.js' | asset_url | append: '&v=2' }}" defer></script>
+<script src="{{ 'sharecart-drawer.js' | asset_url | append: '&v=2' }}" defer></script>
 
 {% schema %}
 {

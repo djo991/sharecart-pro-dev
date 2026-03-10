@@ -11,11 +11,28 @@
   var config = window.__sharecart || {};
   var appUrl = config.appUrl || '';
 
-  // Prevent double-restore: check if we've already processed this token
-  var RESTORE_KEY = '__sc_restored';
-  try {
-    if (sessionStorage.getItem(RESTORE_KEY) === token) return;
-  } catch (e) { }
+  // Double-restore prevention removed to allow reusing links
+
+  // Identify redirect target and show optimistic loading overlay immediately
+  var target = config.redirectTarget || 'cart';
+  var redirectUrl = '/cart';
+  if (target === 'home') redirectUrl = '/';
+  if (target === 'checkout') redirectUrl = '/checkout';
+
+  // Preserve existing parameters (like UTMs) and forward them to the final URL
+  params.delete(SC_PARAM);
+  var remainingParams = params.toString();
+  if (remainingParams) {
+    redirectUrl += (redirectUrl.indexOf('?') !== -1 ? '&' : '?') + remainingParams;
+  }
+
+  if (target !== 'preview') {
+    var loadingMsg = 'We are unpacking the items and will take you to the cart page automatically';
+    if (target === 'home') loadingMsg = 'We are unpacking your cart - the items will be automatically added';
+    if (target === 'checkout') loadingMsg = 'We are unpacking your cart and will take you to checkout automatically';
+
+    showLoadingOverlay(loadingMsg);
+  }
 
   // Fetch cart data from the app API
   fetch(appUrl + '/api/share/' + encodeURIComponent(token))
@@ -25,42 +42,27 @@
     })
     .then(function (data) {
       if (data.expired) {
+        var ol = document.getElementById('sc-loading-overlay');
+        if (ol) ol.remove();
         showRestoreToast('This share link has expired.');
         return;
       }
 
       if (!data.items || data.items.length === 0) {
+        var ol = document.getElementById('sc-loading-overlay');
+        if (ol) ol.remove();
         showRestoreToast('This shared cart is empty.');
         return;
       }
 
-      // Mark as restoring to prevent duplicate processing
-      try {
-        sessionStorage.setItem(RESTORE_KEY, token);
-      } catch (e) { }
-
-      var target = config.redirectTarget || 'cart';
-      var redirectUrl = '/cart';
-      if (target === 'home') redirectUrl = '/';
-      if (target === 'checkout') redirectUrl = '/checkout';
-
-      // Preserve existing parameters (like UTMs) and forward them to the final URL
-      params.delete(SC_PARAM);
-      var remainingParams = params.toString();
-      if (remainingParams) {
-        redirectUrl += (redirectUrl.indexOf('?') !== -1 ? '&' : '?') + remainingParams;
-      }
+      // (Mark as restoring step removed)
 
       if (target === 'preview') {
         showPreviewModal(data.items, config, function () {
           performRestore(data.items, config, token, data.promoCodes, redirectUrl);
         });
       } else {
-        var loadingMsg = 'We are unpacking the items and will take you to the cart page automatically';
-        if (target === 'home') loadingMsg = 'We are unpacking your cart - the items will be automatically added';
-        if (target === 'checkout') loadingMsg = 'We are unpacking your cart and will take you to checkout automatically';
-
-        showLoadingOverlay(loadingMsg);
+        // Overlay is already showing optimistically
         performRestore(data.items, config, token, data.promoCodes, redirectUrl);
       }
     })

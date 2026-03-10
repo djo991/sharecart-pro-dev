@@ -1,4 +1,4 @@
-import { useLoaderData, useNavigate, useSubmit } from "react-router";
+import { useLoaderData, useNavigate, useSubmit, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import {
   Page,
@@ -91,6 +91,7 @@ export default function Dashboard() {
   const { summary, recentLinks, currencyCode, shopDomain, daysParam, timeseries } = useLoaderData();
   const navigate = useNavigate();
   const submit = useSubmit();
+  const navigation = useNavigation();
 
   const handleToggle = (id) => {
     submit({ _action: "toggle", id }, { method: "post" });
@@ -142,6 +143,8 @@ export default function Dashboard() {
       statusBadge = <Badge tone="warning">Paused</Badge>;
     }
 
+    const isToggling = navigation.state === "submitting" && navigation.formData?.get("id") === link.id;
+
     return [
       <Button
         variant="plain"
@@ -152,11 +155,12 @@ export default function Dashboard() {
       new Date(link.createdAt).toLocaleDateString(),
       link.customerEmail || "—",
       statusBadge,
-      link._count.events,
+      link.impressions ?? 0,
+      link.completedPurchases ?? 0,
       <Button
-        variant="tertiary"
         onClick={() => handleToggle(link.id)}
-        disabled={isExpired}
+        disabled={isExpired || isToggling}
+        loading={isToggling}
       >
         {link.isActive ? "Pause" : "Resume"}
       </Button>
@@ -256,8 +260,8 @@ export default function Dashboard() {
                 </EmptyState>
               ) : (
                 <DataTable
-                  columnContentTypes={["text", "text", "text", "text", "numeric", "text"]}
-                  headings={["Token", "Created", "Shared by", "Status", "Events", "Action"]}
+                  columnContentTypes={["text", "text", "text", "text", "numeric", "numeric", "text"]}
+                  headings={["Token", "Created", "Shared by", "Status", "Impressions", "Conversions", "Action"]}
                   rows={rows}
                 />
               )}
