@@ -127,7 +127,7 @@ export default async function () {
     }
     var row2 = el('s-text', { tone: 'subdued', type: 'small' }, metaParts.join(' \u00b7 '));
 
-    // ── Row 3: Pause/Activate + Delete (50/50 textual buttons) ───────────
+    // ── Row 3: All action buttons in one row ───────────────────────────────
     var toggleBtn = null;
     if (status !== 'Expired') {
       toggleBtn = el('s-button', {
@@ -146,17 +146,6 @@ export default async function () {
       onclick: function () { handleDelete(cartId); },
     }, 'Delete');
 
-    var row3;
-    if (toggleBtn) {
-      row3 = el('s-grid', { gridTemplateColumns: '1fr 1fr', gap: 'small', minInlineSize: '100%' },
-        el('s-grid-item', {}, toggleBtn),
-        el('s-grid-item', {}, deleteBtn)
-      );
-    } else {
-      row3 = deleteBtn;
-    }
-
-    // ── Row 4: Copy link + Details (50/50 textual buttons) ───────────────
     var copyBtn = el('s-button', {
       variant: 'primary',
       command: '--copy',
@@ -178,10 +167,14 @@ export default async function () {
       isExpanded ? ' Hide' : ' Details'
     );
 
-    var row4 = el('s-grid', { gridTemplateColumns: '1fr 1fr', gap: 'small', minInlineSize: '100%' },
-      el('s-grid-item', {}, copyBtn),
-      el('s-grid-item', {}, detailsBtn)
-    );
+    var actionItems = [];
+    if (toggleBtn) actionItems.push(el('s-grid-item', {}, toggleBtn));
+    actionItems.push(el('s-grid-item', {}, deleteBtn));
+    actionItems.push(el('s-grid-item', {}, copyBtn));
+    actionItems.push(el('s-grid-item', {}, detailsBtn));
+
+    var cols = actionItems.map(function () { return '1fr'; }).join(' ');
+    var row3 = el('s-grid', { gridTemplateColumns: cols, gap: 'small', minInlineSize: '100%' }, actionItems);
 
     // ── Expandable details section ────────────────────────────────────────
     var detailSection = null;
@@ -205,11 +198,13 @@ export default async function () {
             if (itemImageUrl.startsWith('//')) {
               itemImageUrl = 'https:' + itemImageUrl;
             }
-            rowParts.push(
-              el('s-box', { inlineSize: 40, blockSize: 40, cornerRadius: 'base', overflow: 'hidden' },
-                el('s-image', { src: itemImageUrl, alt: name, aspectRatio: 1, fit: 'cover' })
-              )
-            );
+            var img = document.createElement('img');
+            img.src = itemImageUrl;
+            img.alt = name;
+            img.width = 40;
+            img.height = 40;
+            img.style.cssText = 'width:40px;height:40px;object-fit:cover;border-radius:6px;display:block;';
+            rowParts.push(img);
           }
           rowParts.push(
             el('s-stack', { direction: 'column', gap: 'small-100' },
@@ -300,7 +295,7 @@ export default async function () {
     }
 
     // Assemble card: Row1, Row2, Row3, Row4, (optional) Details
-    var cardChildren = [row1, row2, row3, row4];
+    var cardChildren = [row1, row2, row3];
     if (detailSection) cardChildren.push(detailSection);
 
     return el('s-box', {
