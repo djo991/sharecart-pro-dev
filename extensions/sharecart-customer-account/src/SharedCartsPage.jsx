@@ -153,7 +153,7 @@ export default async function () {
       fullWidth: true
     },
       el('s-icon', { type: 'clipboard' }),
-      isCopied ? ' Copied!' : ' Copy link'
+      isCopied ? ' Copied!' : ' Copy'
     );
 
     var detailsBtn = el('s-button', {
@@ -203,7 +203,6 @@ export default async function () {
             img.alt = name;
             img.width = 40;
             img.height = 40;
-            img.style.cssText = 'width:40px;height:40px;object-fit:cover;border-radius:6px;display:block;';
             rowParts.push(img);
           }
           rowParts.push(
