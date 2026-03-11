@@ -10,6 +10,7 @@
   }
 
   function init() {
+    console.log('[ShareCart Debug] Button init started');
     var sc = window.__sharecart || {};
 
     // Check visibility rules before initializing
@@ -25,11 +26,13 @@
     }
 
     if (!shouldShowButton()) {
+      console.log('[ShareCart Debug] shouldShowButton returned false. visibilityMode:', sc.visibilityMode, 'loggedIn:', sc.customerLoggedIn);
       // Hide the App Block button if present
       var wrapper = document.getElementById('sharecart-btn-wrapper');
       if (wrapper) wrapper.style.display = 'none';
       return;
     }
+    console.log('[ShareCart Debug] shouldShowButton returned true');
 
     var shopDomain = sc.shop || '';
     var appUrl = sc.appUrl || '';

@@ -10,10 +10,15 @@
   }
 
   function init() {
+    console.log('[ShareCart Debug] Drawer init started');
     var sc = window.__sharecart || {};
 
     // Check visibility rules before proceeding
-    if (!shouldShowButton()) return;
+    if (!shouldShowButton()) {
+      console.log('[ShareCart Debug Drawer] shouldShowButton returned false. visibilityMode:', sc.visibilityMode, 'loggedIn:', sc.customerLoggedIn);
+      return;
+    }
+    console.log('[ShareCart Debug Drawer] shouldShowButton returned true');
 
     function shouldShowButton() {
       if (sc.visibilityMode === 'all') return true;
