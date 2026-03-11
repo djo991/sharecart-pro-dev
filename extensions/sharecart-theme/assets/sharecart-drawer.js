@@ -96,6 +96,7 @@
 
       var btn = document.createElement('button');
       btn.type = 'button';
+      btn.id = 'sharecart-open-btn-drawer';
       btn.className = 'sharecart-btn sharecart-drawer-btn';
       btn.setAttribute(INJECTED_ATTR, 'true');
       btn.style.cssText =
@@ -117,7 +118,8 @@
         if (sc.openShareModal) {
           sc.openShareModal();
         } else {
-          console.warn('[ShareCart] openShareModal not available yet');
+          console.warn('[ShareCart] openShareModal not available yet, dispatching custom event');
+          document.dispatchEvent(new CustomEvent('sharecart:open'));
         }
       });
 

@@ -477,11 +477,16 @@
 
     // ── Bind App Block button via Event Delegation ──
     document.addEventListener('click', function(e) {
-      // Find the closest element with the 'sharecart-open-btn' ID
-      var btn = e.target.closest('#sharecart-open-btn');
+      // Find the closest element with the 'sharecart-open-btn' ID or the drawer button ID
+      var btn = e.target.closest('#sharecart-open-btn') || e.target.closest('#sharecart-open-btn-drawer');
       if (btn) {
         openModal();
       }
+    });
+
+    // Fallback listener for the drawer script
+    document.addEventListener('sharecart:open', function() {
+      openModal();
     });
 
     resolveModalEls();
