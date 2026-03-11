@@ -472,23 +472,27 @@
     sc.openShareModal = openModal;
     window.__sharecart = sc;
 
-    // ── Bind App Block button if present ──
-    var openBtn = document.getElementById('sharecart-open-btn');
-    if (openBtn) {
-      openBtn.addEventListener('click', openModal);
-      resolveModalEls();
-      var closeBtnEl = document.getElementById('sharecart-modal-close');
-      if (closeBtnEl) closeBtnEl.addEventListener('click', closeModal);
-      if (overlay) overlay.addEventListener('click', function (e) {
-        if (e.target === overlay) closeModal();
-      });
-      if (copyBtn) copyBtn.addEventListener('click', copyLink);
-      if (generateBtn) generateBtn.addEventListener('click', handleGenerate);
-      if (regenerateLink) regenerateLink.addEventListener('click', function (e) {
-        e.preventDefault();
-        resetToForm();
-      });
-    }
+    // ── Bind App Block button via Event Delegation ──
+    document.addEventListener('click', function(e) {
+      // Find the closest element with the 'sharecart-open-btn' ID
+      var btn = e.target.closest('#sharecart-open-btn');
+      if (btn) {
+        openModal();
+      }
+    });
+
+    resolveModalEls();
+    var closeBtnEl = document.getElementById('sharecart-modal-close');
+    if (closeBtnEl) closeBtnEl.addEventListener('click', closeModal);
+    if (overlay) overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) closeModal();
+    });
+    if (copyBtn) copyBtn.addEventListener('click', copyLink);
+    if (generateBtn) generateBtn.addEventListener('click', handleGenerate);
+    if (regenerateLink) regenerateLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      resetToForm();
+    });
 
     // ── Close on Escape key ──
     document.addEventListener('keydown', function (e) {

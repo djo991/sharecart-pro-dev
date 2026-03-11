@@ -83,6 +83,7 @@ export default async function () {
   // ── card builder ──────────────────────────────────────────────────────────
   // ── card builder ──────────────────────────────────────────────────────────
   function buildCartCard(cart) {
+    console.log('[ShareCart Debug] Rendering card for:', cart.name, cart);
     var status = getStatus(cart);
     var isExpanded = state.expandedId === cart.id;
     var isLoading = state.actionLoading === cart.id;
@@ -109,15 +110,15 @@ export default async function () {
     var toggleBtn = null;
     if (status !== 'Expired') {
       toggleBtn = el('s-button', {
-        variant: 'plain',
+        variant: 'secondary',
         loading: isLoading,
         accessibilityLabel: cartActive ? 'Pause' : 'Resume',
         onclick: function () { handleToggle(cartId); },
-      }, el('s-icon', { type: cartActive ? 'pause-circle' : 'play-circle', color: 'subdued' }));
+      }, el('s-icon', { type: cartActive ? 'pause-circle' : 'play-circle' }));
     }
 
     var deleteBtn = el('s-button', {
-      variant: 'plain',
+      variant: 'secondary',
       tone: 'critical',
       loading: isLoading,
       accessibilityLabel: 'Delete',
@@ -130,12 +131,13 @@ export default async function () {
 
     var headerBlock = el('s-stack', {
       direction: 'inline',
+      alignItems: 'center',
       inlineAlignment: 'space-between',
       blockAlignment: 'center',
       minInlineSize: '100%'
     },
       el('s-badge', { tone: badgeTone }, status),
-      el('s-stack', { direction: 'inline', gap: 'small-300' }, quickActions)
+      el('s-stack', { direction: 'inline', gap: 'small-300', blockAlignment: 'center', inlineAlignment: 'end' }, quickActions)
     );
 
     // ── Row 2: Main Image (Fallbacks to entirely hidden) ─────────────────
@@ -144,6 +146,7 @@ export default async function () {
       for (var i = 0; i < cart.items.length; i++) {
         if (cart.items[i].image) {
           firstImage = cart.items[i].image;
+          // Ensure URL is absolute (Shopify often returns //cdn.shopify.com/...)
           if (firstImage.startsWith('//')) {
             firstImage = 'https:' + firstImage;
           }
@@ -153,11 +156,11 @@ export default async function () {
     }
 
     var imageBlock = null;
+    console.log('[ShareCart Debug] firstImage raw mapped:', firstImage);
     if (firstImage) {
-      imageBlock = el('s-box', { background: 'subdued', cornerRadius: 'base' },
-        el('s-stack', { direction: 'column', alignItems: 'center', inlineAlignment: 'center' },
-          el('s-image', { source: firstImage, alt: cart.name || 'Shared Cart', fit: 'cover', aspectRatio: 1 })
-        )
+      // Create a fallback so it doesn't take up 100% space if invalid
+      imageBlock = el('s-box', { cornerRadius: 'base' },
+        el('s-image', { src: firstImage, alt: cart.name || 'Shared Cart', aspectRatio: 1, fit: 'cover' })
       );
     }
 
@@ -229,7 +232,7 @@ export default async function () {
             }
             rowParts.push(
               el('s-box', { maxInlineSize: 40, cornerRadius: 'base', overflow: 'hidden' },
-                el('s-image', { source: itemImageUrl, alt: name, aspectRatio: 1, fit: 'cover' })
+                el('s-image', { src: itemImageUrl, alt: name, aspectRatio: 1, fit: 'cover' })
               )
             );
           }

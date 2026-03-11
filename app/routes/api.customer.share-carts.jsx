@@ -44,7 +44,7 @@ export const action = async ({ request }) => {
 async function enrichItemTitles(shopDomain, shareCarts) {
   // Collect variant IDs that have no title
   const allItems = shareCarts.flatMap((c) => c.items);
-  const needsEnrichment = allItems.some((item) => !item.title);
+  const needsEnrichment = allItems.some((item) => !item.title || !item.image);
   if (!needsEnrichment) return;
 
   try {
@@ -53,7 +53,7 @@ async function enrichItemTitles(shopDomain, shareCarts) {
     const variantIds = [
       ...new Set(
         allItems
-          .filter((i) => !i.title && i.variantId)
+          .filter((i) => (!i.title || !i.image) && i.variantId)
           .map((i) => `gid://shopify/ProductVariant/${i.variantId}`)
       ),
     ];
@@ -65,7 +65,12 @@ async function enrichItemTitles(shopDomain, shareCarts) {
           ... on ProductVariant {
             id
             title
-            product { title handle }
+            image { url }
+            product {
+              title 
+              handle
+              featuredImage { url }
+            }
           }
         }
       }`,
@@ -81,17 +86,23 @@ async function enrichItemTitles(shopDomain, shareCarts) {
         title: node.product?.title || "",
         variantTitle: node.title === "Default Title" ? "" : node.title || "",
         handle: node.product?.handle || "",
+        image: node.image?.url || node.product?.featuredImage?.url || "",
       };
     });
 
     // Mutate items in-place
     shareCarts.forEach((cart) => {
       cart.items.forEach((item) => {
-        if (!item.title && variantMap[String(item.variantId)]) {
+        if (variantMap[String(item.variantId)]) {
           const v = variantMap[String(item.variantId)];
-          item.title = v.title;
-          item.variantTitle = v.variantTitle;
-          item.handle = v.handle;
+          if (!item.title) {
+            item.title = v.title;
+            item.variantTitle = v.variantTitle;
+            item.handle = v.handle;
+          }
+          if (!item.image && v.image) {
+            item.image = v.image;
+          }
         }
       });
     });
