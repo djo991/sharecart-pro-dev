@@ -56,10 +56,10 @@
     .catch(function() { return window.__sharecart; }); // fall back to theme editor values on error
 </script>
 
-<script src="{{ 'sharecart-params.js' | asset_url | append: '&v=3' }}" defer></script>
-<script src="{{ 'sharecart-restore.js' | asset_url | append: '&v=3' }}" defer></script>
-<script src="{{ 'sharecart-button.js' | asset_url | append: '&v=3' }}" defer></script>
-<script src="{{ 'sharecart-drawer.js' | asset_url | append: '&v=3' }}" defer></script>
+<script src="{{ 'sharecart-params.js' | asset_url }}" defer></script>
+<script src="{{ 'sharecart-restore.js' | asset_url }}" defer></script>
+<script src="{{ 'sharecart-button.js' | asset_url }}" defer></script>
+<script src="{{ 'sharecart-drawer.js' | asset_url }}" defer></script>
 
 {% schema %}
 {
@@ -119,7 +119,7 @@
         { "value": "logged_in", "label": "Logged-in customers only" },
         { "value": "tagged", "label": "Customers with a specific tag" }
       ],
-      "default": "logged_in"
+      "default": "all"
     },
     {
       "type": "text",
