@@ -150,12 +150,11 @@ export default async function () {
 
     var row3;
     if (toggleBtn) {
-      row3 = el('s-grid', { gridTemplateColumns: '1fr 1fr', gap: 'small', minInlineSize: '100%' },
-        el('s-grid-item', {}, toggleBtn),
-        el('s-grid-item', {}, deleteBtn)
+      row3 = el('s-stack', { direction: 'inline', gap: 'small', minInlineSize: '100%' },
+        el('s-box', { inlineSize: '50%' }, toggleBtn),
+        el('s-box', { inlineSize: '50%' }, deleteBtn)
       );
     } else {
-      // If expired, just show delete full width
       row3 = deleteBtn;
     }
 
@@ -181,9 +180,9 @@ export default async function () {
       isExpanded ? ' Hide' : ' Details'
     );
 
-    var row4 = el('s-grid', { gridTemplateColumns: '1fr 1fr', gap: 'small', minInlineSize: '100%' },
-      el('s-grid-item', {}, copyBtn),
-      el('s-grid-item', {}, detailsBtn)
+    var row4 = el('s-stack', { direction: 'inline', gap: 'small', minInlineSize: '100%' },
+      el('s-box', { inlineSize: '50%' }, copyBtn),
+      el('s-box', { inlineSize: '50%' }, detailsBtn)
     );
 
     // ── Expandable details section ────────────────────────────────────────
@@ -313,7 +312,7 @@ export default async function () {
       background: 'default'
     },
       clipItem,
-      el('s-stack', { direction: 'column', gap: 'base', minInlineSize: '100%' }, cardChildren)
+      el('s-stack', { direction: 'column', gap: 'small', minInlineSize: '100%' }, cardChildren)
     );
   }
 
