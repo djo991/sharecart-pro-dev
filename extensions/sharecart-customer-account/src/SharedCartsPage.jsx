@@ -81,9 +81,7 @@ export default async function () {
   }
 
   // ── card builder ──────────────────────────────────────────────────────────
-  // ── card builder ──────────────────────────────────────────────────────────
   function buildCartCard(cart) {
-    console.log('[ShareCart Debug] Rendering card for:', cart.name, cart);
     var status = getStatus(cart);
     var isExpanded = state.expandedId === cart.id;
     var isLoading = state.actionLoading === cart.id;
@@ -106,65 +104,19 @@ export default async function () {
       setTimeout(function () { setState({ copiedId: null }); }, 2000);
     };
 
-    // ── Row 1: Top Header (Status Badge + Icons) ─────────────────────────
-    var toggleBtn = null;
-    if (status !== 'Expired') {
-      toggleBtn = el('s-button', {
-        variant: 'secondary',
-        loading: isLoading,
-        accessibilityLabel: cartActive ? 'Pause' : 'Resume',
-        onclick: function () { handleToggle(cartId); },
-      }, el('s-icon', { type: cartActive ? 'pause-circle' : 'play-circle' }));
-    }
-
-    var deleteBtn = el('s-button', {
-      variant: 'secondary',
-      tone: 'critical',
-      loading: isLoading,
-      accessibilityLabel: 'Delete',
-      onclick: function () { handleDelete(cartId); },
-    }, el('s-icon', { type: 'delete' }));
-
-    var quickActions = [];
-    if (toggleBtn) quickActions.push(toggleBtn);
-    quickActions.push(deleteBtn);
-
-    var headerBlock = el('s-stack', {
+    // ── Row 1: Cart Title + Status Badge ─────────────────────────────────
+    var row1 = el('s-stack', {
       direction: 'inline',
       alignItems: 'center',
       inlineAlignment: 'space-between',
       blockAlignment: 'center',
       minInlineSize: '100%'
     },
-      el('s-badge', { tone: badgeTone }, status),
-      el('s-stack', { direction: 'inline', gap: 'small-300', blockAlignment: 'center', inlineAlignment: 'end' }, quickActions)
+      el('s-text', { type: 'strong' }, cart.name || 'Shared Cart'),
+      el('s-badge', { tone: badgeTone }, status)
     );
 
-    // ── Row 2: Main Image (Fallbacks to entirely hidden) ─────────────────
-    var firstImage = null;
-    if (cart.items && cart.items.length > 0) {
-      for (var i = 0; i < cart.items.length; i++) {
-        if (cart.items[i].image) {
-          firstImage = cart.items[i].image;
-          // Ensure URL is absolute (Shopify often returns //cdn.shopify.com/...)
-          if (firstImage.startsWith('//')) {
-            firstImage = 'https:' + firstImage;
-          }
-          break;
-        }
-      }
-    }
-
-    var imageBlock = null;
-    console.log('[ShareCart Debug] firstImage raw mapped:', firstImage);
-    if (firstImage) {
-      // Create a fallback so it doesn't take up 100% space if invalid
-      imageBlock = el('s-box', { cornerRadius: 'base' },
-        el('s-image', { src: firstImage, alt: cart.name || 'Shared Cart', aspectRatio: 1, fit: 'cover' })
-      );
-    }
-
-    // ── Row 3: Meta Info (Name, Date, Items, Metrics) ───────────────────
+    // ── Row 2: Date + Item count (+ optional metrics) ────────────────────
     var metaParts = [formatDate(cart.createdAt)];
     if (itemCount > 0) {
       metaParts.push(itemCount + ' item' + (itemCount !== 1 ? 's' : ''));
@@ -175,13 +127,39 @@ export default async function () {
     if (cart.completedPurchases > 0) {
       metaParts.push(cart.completedPurchases + ' order' + (cart.completedPurchases !== 1 ? 's' : ''));
     }
+    var row2 = el('s-text', { tone: 'subdued', type: 'small' }, metaParts.join(' \u00b7 '));
 
-    var metaBlock = el('s-stack', { direction: 'column', gap: 'small-100' },
-      el('s-text', { type: 'strong' }, cart.name || 'Shared Cart'),
-      el('s-text', { tone: 'subdued', type: 'small' }, metaParts.join(' \u00b7 '))
-    );
+    // ── Row 3: Pause/Activate + Delete (50/50 textual buttons) ───────────
+    var toggleBtn = null;
+    if (status !== 'Expired') {
+      toggleBtn = el('s-button', {
+        variant: 'secondary',
+        loading: isLoading,
+        fullWidth: true,
+        onclick: function () { handleToggle(cartId); },
+      }, cartActive ? 'Pause' : 'Activate');
+    }
 
-    // ── Row 4: Action Buttons (Equal size) ──────────────────────────────
+    var deleteBtn = el('s-button', {
+      variant: 'secondary',
+      tone: 'critical',
+      loading: isLoading,
+      fullWidth: true,
+      onclick: function () { handleDelete(cartId); },
+    }, 'Delete');
+
+    var row3;
+    if (toggleBtn) {
+      row3 = el('s-grid', { gridTemplateColumns: '1fr 1fr', gap: 'small', minInlineSize: '100%' },
+        el('s-grid-item', {}, toggleBtn),
+        el('s-grid-item', {}, deleteBtn)
+      );
+    } else {
+      // If expired, just show delete full width
+      row3 = deleteBtn;
+    }
+
+    // ── Row 4: Copy link + Details (50/50 textual buttons) ───────────────
     var copyBtn = el('s-button', {
       variant: 'primary',
       command: '--copy',
@@ -203,7 +181,7 @@ export default async function () {
       isExpanded ? ' Hide' : ' Details'
     );
 
-    var buttonBlock = el('s-grid', { gridTemplateColumns: '1fr 1fr', gap: 'small', minInlineSize: '100%' },
+    var row4 = el('s-grid', { gridTemplateColumns: '1fr 1fr', gap: 'small', minInlineSize: '100%' },
       el('s-grid-item', {}, copyBtn),
       el('s-grid-item', {}, detailsBtn)
     );
@@ -256,7 +234,6 @@ export default async function () {
       // Metadata section (Promo / Expiry / Link)
       var metaBoxParts = [];
 
-      // Promo codes
       if (cart.promoCodes && cart.promoCodes.length > 0) {
         var promoEls = [el('s-text', { type: 'strong' }, 'Promo code')];
         cart.promoCodes.forEach(function (p) {
@@ -267,7 +244,6 @@ export default async function () {
         );
       }
 
-      // Expiry
       if (cart.expiresAt) {
         metaBoxParts.push(
           el('s-text', { tone: 'subdued', type: 'small' },
@@ -278,7 +254,6 @@ export default async function () {
         metaBoxParts.push(el('s-text', { tone: 'subdued', type: 'small' }, 'Never expires'));
       }
 
-      // Share URL & QR
       if (cartUrl) {
         metaBoxParts.push(
           el('s-stack', { direction: 'column', gap: 'base' },
@@ -302,7 +277,6 @@ export default async function () {
         parts.push(el('s-stack', { direction: 'column', gap: 'base', minInlineSize: '100%' }, metaBoxParts));
       }
 
-      // Orders placed via this cart
       if (cart.orders && cart.orders.length > 0) {
         var orderEls = [el('s-text', { type: 'strong' }, 'Orders from this cart')];
         cart.orders.forEach(function (order) {
@@ -328,26 +302,19 @@ export default async function () {
       );
     }
 
-    var cardParams = [
-      clipItem,
-      el('s-stack', { direction: 'column', gap: 'base', minInlineSize: '100%' },
-        headerBlock,
-        imageBlock,
-        metaBlock,
-        buttonBlock,
-        detailSection
-      )
-    ];
-
-    // Filter out nulls
-    cardParams = cardParams.filter(Boolean);
+    // Assemble card: Row1, Row2, Row3, Row4, (optional) Details
+    var cardChildren = [row1, row2, row3, row4];
+    if (detailSection) cardChildren.push(detailSection);
 
     return el('s-box', {
       border: 'base',
       cornerRadius: 'base',
       padding: 'base',
       background: 'default'
-    }, ...cardParams);
+    },
+      clipItem,
+      el('s-stack', { direction: 'column', gap: 'base', minInlineSize: '100%' }, cardChildren)
+    );
   }
 
   // ── full UI ───────────────────────────────────────────────────────────────
