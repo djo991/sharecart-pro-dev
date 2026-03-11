@@ -109,15 +109,15 @@ export default async function () {
     var toggleBtn = null;
     if (status !== 'Expired') {
       toggleBtn = el('s-button', {
-        variant: 'secondary',
+        variant: 'plain',
         loading: isLoading,
         accessibilityLabel: cartActive ? 'Pause' : 'Resume',
         onclick: function () { handleToggle(cartId); },
-      }, el('s-icon', { type: cartActive ? 'pause' : 'play' }));
+      }, el('s-icon', { type: cartActive ? 'pause-circle' : 'play-circle', color: 'subdued' }));
     }
 
     var deleteBtn = el('s-button', {
-      variant: 'secondary',
+      variant: 'plain',
       tone: 'critical',
       loading: isLoading,
       accessibilityLabel: 'Delete',
@@ -130,7 +130,6 @@ export default async function () {
 
     var headerBlock = el('s-stack', {
       direction: 'inline',
-      alignItems: 'center',
       inlineAlignment: 'space-between',
       blockAlignment: 'center',
       minInlineSize: '100%'
@@ -145,6 +144,9 @@ export default async function () {
       for (var i = 0; i < cart.items.length; i++) {
         if (cart.items[i].image) {
           firstImage = cart.items[i].image;
+          if (firstImage.startsWith('//')) {
+            firstImage = 'https:' + firstImage;
+          }
           break;
         }
       }
@@ -152,7 +154,7 @@ export default async function () {
 
     var imageBlock = null;
     if (firstImage) {
-      imageBlock = el('s-box', { overflow: 'hidden', cornerRadius: 'base' },
+      imageBlock = el('s-box', { background: 'subdued', cornerRadius: 'base' },
         el('s-stack', { direction: 'column', alignItems: 'center', inlineAlignment: 'center' },
           el('s-image', { source: firstImage, alt: cart.name || 'Shared Cart', fit: 'cover', aspectRatio: 1 })
         )
@@ -221,9 +223,13 @@ export default async function () {
 
           var rowParts = [];
           if (item.image) {
+            var itemImageUrl = item.image;
+            if (itemImageUrl.startsWith('//')) {
+              itemImageUrl = 'https:' + itemImageUrl;
+            }
             rowParts.push(
               el('s-box', { maxInlineSize: 40, cornerRadius: 'base', overflow: 'hidden' },
-                el('s-image', { source: item.image, alt: name, aspectRatio: 1, fit: 'cover' })
+                el('s-image', { source: itemImageUrl, alt: name, aspectRatio: 1, fit: 'cover' })
               )
             );
           }
