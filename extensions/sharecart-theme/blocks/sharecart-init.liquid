@@ -18,7 +18,7 @@
     customerId: "{{ customer.id | default: '' }}",
     customerEmail: "{{ customer.email | default: '' }}",
     customerTags: {% if customer %}{{ customer.tags | json }}{% else %}[]{% endif %},
-    stylesUrl: "{{ 'sharecart-styles.css' | asset_url | append: '&v=2' }}",
+    stylesUrl: "{{ 'sharecart-styles.css' | asset_url }}",
     // Fallback values from theme editor (overridden by DB config below)
     showNameField: {{ block.settings.show_name_field }},
     showDescriptionField: {{ block.settings.show_description_field }},
