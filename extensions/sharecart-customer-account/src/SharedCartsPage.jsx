@@ -105,15 +105,13 @@ export default async function () {
     };
 
     // ── Row 1: Cart Title + Status Badge ─────────────────────────────────
-    var row1 = el('s-stack', {
-      direction: 'inline',
-      alignItems: 'center',
-      inlineAlignment: 'space-between',
-      blockAlignment: 'center',
-      minInlineSize: '100%'
-    },
-      el('s-text', { type: 'strong' }, cart.name || 'Shared Cart'),
-      el('s-badge', { tone: badgeTone }, status)
+    var row1 = el('s-grid', { gridTemplateColumns: '1fr auto', gap: 'base', minInlineSize: '100%', alignItems: 'center' },
+      el('s-grid-item', {},
+        el('s-text', { type: 'strong' }, cart.name || 'Shared Cart')
+      ),
+      el('s-grid-item', {},
+        el('s-badge', { tone: badgeTone }, status)
+      )
     );
 
     // ── Row 2: Date + Item count (+ optional metrics) ────────────────────
@@ -150,9 +148,9 @@ export default async function () {
 
     var row3;
     if (toggleBtn) {
-      row3 = el('s-stack', { direction: 'inline', gap: 'small', minInlineSize: '100%' },
-        el('s-box', { inlineSize: '50%' }, toggleBtn),
-        el('s-box', { inlineSize: '50%' }, deleteBtn)
+      row3 = el('s-grid', { gridTemplateColumns: '1fr 1fr', gap: 'small', minInlineSize: '100%' },
+        el('s-grid-item', {}, toggleBtn),
+        el('s-grid-item', {}, deleteBtn)
       );
     } else {
       row3 = deleteBtn;
@@ -180,9 +178,9 @@ export default async function () {
       isExpanded ? ' Hide' : ' Details'
     );
 
-    var row4 = el('s-stack', { direction: 'inline', gap: 'small', minInlineSize: '100%' },
-      el('s-box', { inlineSize: '50%' }, copyBtn),
-      el('s-box', { inlineSize: '50%' }, detailsBtn)
+    var row4 = el('s-grid', { gridTemplateColumns: '1fr 1fr', gap: 'small', minInlineSize: '100%' },
+      el('s-grid-item', {}, copyBtn),
+      el('s-grid-item', {}, detailsBtn)
     );
 
     // ── Expandable details section ────────────────────────────────────────
@@ -208,7 +206,7 @@ export default async function () {
               itemImageUrl = 'https:' + itemImageUrl;
             }
             rowParts.push(
-              el('s-box', { maxInlineSize: 40, cornerRadius: 'base', overflow: 'hidden' },
+              el('s-box', { inlineSize: 40, blockSize: 40, cornerRadius: 'base', overflow: 'hidden' },
                 el('s-image', { src: itemImageUrl, alt: name, aspectRatio: 1, fit: 'cover' })
               )
             );
