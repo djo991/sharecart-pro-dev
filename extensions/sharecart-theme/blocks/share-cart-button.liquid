@@ -7,10 +7,7 @@
 {% comment %} The modal is now created dynamically by sharecart-button.js {% endcomment %}
 
 {% comment %} Liquid-side visibility gate (JS also enforces via shouldShowButton) {% endcomment %}
-{% assign sc_visible = false %}
-{% if customer %}
-  {% assign sc_visible = true %}
-{% endif %}
+{% assign sc_visible = true %}
 
 {% if sc_visible %}
 <div
