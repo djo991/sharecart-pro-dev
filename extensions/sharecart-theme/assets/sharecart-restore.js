@@ -8,70 +8,76 @@
   var token = params.get(SC_PARAM);
   if (!token) return;
 
-  var config = window.__sharecart || {};
-  var appUrl = config.appUrl || '';
+  // Wait for DB-driven config to load before reading redirectTarget etc.
+  var ready = window.__sharecartReady;
+  var configPromise = (ready && typeof ready.then === 'function')
+    ? ready
+    : Promise.resolve(window.__sharecart || {});
 
-  // Double-restore prevention removed to allow reusing links
+  configPromise.then(function () {
+    var config = window.__sharecart || {};
+    var appUrl = config.appUrl || '';
 
-  // Identify redirect target and show optimistic loading overlay immediately
-  var target = config.redirectTarget || 'cart';
-  var redirectUrl = '/cart';
-  if (target === 'home') redirectUrl = '/';
-  if (target === 'checkout') redirectUrl = '/checkout';
+    // Identify redirect target and show optimistic loading overlay immediately
+    var target = config.redirectTarget || 'cart';
+    var redirectUrl = '/cart';
+    if (target === 'home') redirectUrl = '/';
+    if (target === 'checkout') redirectUrl = '/checkout';
 
-  // Preserve existing parameters (like UTMs) and forward them to the final URL
-  params.delete(SC_PARAM);
-  var remainingParams = params.toString();
-  if (remainingParams) {
-    redirectUrl += (redirectUrl.indexOf('?') !== -1 ? '&' : '?') + remainingParams;
-  }
+    // Preserve existing parameters (like UTMs) and forward them to the final URL
+    params.delete(SC_PARAM);
+    var remainingParams = params.toString();
+    if (remainingParams) {
+      redirectUrl += (redirectUrl.indexOf('?') !== -1 ? '&' : '?') + remainingParams;
+    }
 
-  if (target !== 'preview') {
-    var loadingMsg = 'We are unpacking the items and will take you to the cart page automatically';
-    if (target === 'home') loadingMsg = 'We are unpacking your cart - the items will be automatically added';
-    if (target === 'checkout') loadingMsg = 'We are unpacking your cart and will take you to checkout automatically';
+    if (target !== 'preview') {
+      var loadingMsg = 'We are unpacking the items and will take you to the cart page automatically';
+      if (target === 'home') loadingMsg = 'We are unpacking your cart - the items will be automatically added';
+      if (target === 'checkout') loadingMsg = 'We are unpacking your cart and will take you to checkout automatically';
 
-    showLoadingOverlay(loadingMsg);
-  }
+      showLoadingOverlay(loadingMsg);
+    }
 
-  // Fetch cart data from the app API
-  fetch(appUrl + '/api/share/' + encodeURIComponent(token))
-    .then(function (r) {
-      if (!r.ok) throw new Error('Share link not found');
-      return r.json();
-    })
-    .then(function (data) {
-      if (data.expired) {
-        var ol = document.getElementById('sc-loading-overlay');
-        if (ol) ol.remove();
-        showRestoreToast('This share link has expired.');
-        return;
-      }
+    // Fetch cart data from the app API
+    fetch(appUrl + '/api/share/' + encodeURIComponent(token))
+      .then(function (r) {
+        if (!r.ok) throw new Error('Share link not found');
+        return r.json();
+      })
+      .then(function (data) {
+        if (data.expired) {
+          var ol = document.getElementById('sc-loading-overlay');
+          if (ol) ol.remove();
+          showRestoreToast('This share link has expired.');
+          return;
+        }
 
-      if (!data.items || data.items.length === 0) {
-        var ol = document.getElementById('sc-loading-overlay');
-        if (ol) ol.remove();
-        showRestoreToast('This shared cart is empty.');
-        return;
-      }
+        if (!data.items || data.items.length === 0) {
+          var ol = document.getElementById('sc-loading-overlay');
+          if (ol) ol.remove();
+          showRestoreToast('This shared cart is empty.');
+          return;
+        }
 
-      // (Mark as restoring step removed)
-
-      if (target === 'preview') {
-        showPreviewModal(data.items, config, function () {
+        if (target === 'preview') {
+          showPreviewModal(data.items, config, function () {
+            performRestore(data.items, config, token, data.promoCodes, redirectUrl);
+          });
+        } else {
           performRestore(data.items, config, token, data.promoCodes, redirectUrl);
-        });
-      } else {
-        // Overlay is already showing optimistically
-        performRestore(data.items, config, token, data.promoCodes, redirectUrl);
-      }
-    })
-    .catch(function (err) {
-      console.error('[ShareCart] Restore error:', err);
-      showRestoreToast('Could not restore the shared cart.');
-      var ol = document.getElementById('sc-loading-overlay');
-      if (ol) ol.remove();
-    });
+        }
+      })
+      .catch(function (err) {
+        console.error('[ShareCart] Restore error:', err);
+        showRestoreToast('Could not restore the shared cart.');
+        var ol = document.getElementById('sc-loading-overlay');
+        if (ol) ol.remove();
+      });
+  }).catch(function () {
+    // Config failed to load — proceed with defaults
+    console.warn('[ShareCart] Config load failed, using defaults for restore');
+  });
 
   function performRestore(items, config, token, promoCodes, redirectUrl) {
     var appUrl = config.appUrl || '';

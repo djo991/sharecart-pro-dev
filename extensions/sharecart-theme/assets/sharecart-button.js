@@ -26,13 +26,11 @@
     }
 
     if (!shouldShowButton()) {
-      console.log('[ShareCart Debug] shouldShowButton returned false. visibilityMode:', sc.visibilityMode, 'loggedIn:', sc.customerLoggedIn);
-      // Hide the App Block button if present (commented out for debugging)
-      // var wrapper = document.getElementById('sharecart-btn-wrapper');
-      // if (wrapper) wrapper.style.display = 'none';
-      // return; // REMOVED EARLY RETURN TO FORCE EVENT BINDING
+      console.log('[ShareCart] Button hidden — visibilityMode:', sc.visibilityMode, 'loggedIn:', sc.customerLoggedIn);
+      var wrapper = document.getElementById('sharecart-btn-wrapper');
+      if (wrapper) wrapper.style.display = 'none';
+      return;
     }
-    console.log('[ShareCart Debug] shouldShowButton returned true');
 
     var shopDomain = sc.shop || '';
     var appUrl = sc.appUrl || '';
@@ -45,6 +43,7 @@
     var showDescriptionField = sc.showDescriptionField !== false;
     var showPromoField = sc.showPromoField === true;
     var showExpiryField = sc.showExpiryField !== false;
+    var showSaveOption = sc.showSaveOption !== false;
 
     // If App Block is present, read config from data attributes (theme editor defaults)
     // then override with DB-driven values from sc (already merged via __sharecartReady)
@@ -157,6 +156,14 @@
           '</select>' +
           '</div>';
       }
+      if (showSaveOption && sc.customerLoggedIn) {
+        html += '<div class="sharecart-form-group sharecart-checkbox-group">' +
+          '<label class="sharecart-checkbox-label">' +
+          '<input id="sharecart-save-input" type="checkbox" checked /> ' +
+          'Save this cart to my account' +
+          '</label>' +
+          '</div>';
+      }
       return html;
     }
 
@@ -252,6 +259,7 @@
       var descInput = document.getElementById('sharecart-desc-input');
       var promoInput = document.getElementById('sharecart-promo-input');
       var expiryInput = document.getElementById('sharecart-expiry-input');
+      var saveInput = document.getElementById('sharecart-save-input');
 
       if (nameInput) data.name = nameInput.value.trim();
       if (descInput) data.description = descInput.value.trim();
@@ -262,6 +270,7 @@
       if (expiryInput && !expiryInput.value) {
         data.neverExpires = true;
       }
+      if (saveInput) data.save = saveInput.checked;
       return data;
     }
 

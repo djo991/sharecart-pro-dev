@@ -1,9 +1,10 @@
 import { authenticate } from "../shopify.server";
 import { getShareLinksForCustomer } from "../models/shareLink.server";
+import { getShop } from "../models/shop.server";
 
 /**
  * App proxy endpoint: /apps/sharecart/api/storefront/my-carts
- * Returns the logged-in customer's saved share links for the legacy account page widget.
+ * Returns the logged-in customer's saved share links for the account page.
  *
  * Shopify app proxy automatically appends ?shop=... and ?logged_in_customer_id=...
  * when the request comes from a logged-in customer on the storefront.
@@ -17,13 +18,20 @@ export const loader = async ({ request }) => {
     return Response.json({ shareCarts: [], total: 0 }, { headers: { "Cache-Control": "no-store" } });
   }
 
+  // Read shop settings for customer permissions
+  const shop = await getShop(session.shop);
+  const s = shop?.settings || {};
+  const includeExpired = s.showExpiredCarts === true;
+  const allowCustomerDeactivate = s.allowCustomerDeactivate !== false;
+  const allowCustomerDelete = s.allowCustomerDelete !== false;
+
   const page = parseInt(url.searchParams.get("page") || "1", 10);
   const perPage = parseInt(url.searchParams.get("perPage") || "20", 10);
 
   const result = await getShareLinksForCustomer(session.shop, customerId, {
     page,
     perPage,
-    includeExpired: false,
+    includeExpired,
   });
 
   const shareCarts = result.items.map((link) => {
@@ -64,6 +72,9 @@ export const loader = async ({ request }) => {
       total: result.total,
       page: result.page,
       totalPages: Math.ceil(result.total / perPage),
+      // Customer permissions — consumed by sharecart-account.js
+      allowCustomerDeactivate,
+      allowCustomerDelete,
     },
     { headers: { "Cache-Control": "no-store" } }
   );

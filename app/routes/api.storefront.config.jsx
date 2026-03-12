@@ -26,7 +26,14 @@ export const loader = async ({ request }) => {
       buttonLabel: s.buttonLabel ?? "Share Cart",
       buttonColor: s.buttonColor ?? "#000000",
       buttonTextColor: s.buttonTextColor ?? "#ffffff",
+      buttonPosition: s.buttonPosition ?? "after-cart-actions",
       enabledChannels: s.enabledChannels ?? "link,whatsapp,facebook,twitter,email",
+      // Share message
+      defaultShareMessage: s.defaultShareMessage ?? "Check out my cart!",
+      // Customer account permissions
+      allowCustomerDeactivate: s.allowCustomerDeactivate !== false,
+      allowCustomerDelete: s.allowCustomerDelete !== false,
+      showExpiredCarts: s.showExpiredCarts === true,
     },
     {
       headers: {

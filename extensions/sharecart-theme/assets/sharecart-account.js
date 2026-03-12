@@ -17,6 +17,8 @@
   var detailCartId = null;
   var copiedId = null;
   var actionLoading = null;
+  var allowDeactivate = true;
+  var allowDelete = true;
 
   // ── Utility ──
 
@@ -86,6 +88,8 @@
         injectStyles();
         allCarts = data.shareCarts || [];
         totalPages = data.totalPages || 1;
+        if (data.allowCustomerDeactivate !== undefined) allowDeactivate = data.allowCustomerDeactivate;
+        if (data.allowCustomerDelete !== undefined) allowDelete = data.allowCustomerDelete;
         render();
       })
       .catch(function (err) {
@@ -202,7 +206,7 @@
     html += '</button>';
 
     // Toggle button
-    if (!isExpired) {
+    if (!isExpired && allowDeactivate) {
       if (isPaused) {
         html += '<button class="sc-btn sc-btn-icon sc-btn-resume sc-act-toggle" data-id="' + esc(cart.id) + '" title="Resume">';
         html += '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
@@ -215,9 +219,11 @@
     }
 
     // Delete button
-    html += '<button class="sc-btn sc-btn-icon sc-btn-delete sc-act-delete" data-id="' + esc(cart.id) + '" title="Delete">';
-    html += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>';
-    html += '</button>';
+    if (allowDelete) {
+      html += '<button class="sc-btn sc-btn-icon sc-btn-delete sc-act-delete" data-id="' + esc(cart.id) + '" title="Delete">';
+      html += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>';
+      html += '</button>';
+    }
 
     // Details button
     html += '<button class="sc-btn sc-btn-outline sc-btn-details sc-act-details" data-id="' + esc(cart.id) + '">Details</button>';
@@ -273,7 +279,7 @@
     html += '<p class="sc-status-desc">' + (status === 'Active' ? 'Visible to customers and tracking metrics' : status === 'Paused' ? 'Link is paused and not accessible' : 'This cart has expired') + '</p>';
     html += '</div>';
     html += '<span class="sc-badge ' + badgeClass + '">' + status + '</span>';
-    if (status !== 'Expired') {
+    if (status !== 'Expired' && allowDeactivate) {
       html += '<button class="sc-btn ' + (status === 'Active' ? 'sc-btn-outline' : 'sc-btn-primary') + ' sc-act-toggle" data-id="' + esc(cart.id) + '">';
       html += status === 'Active' ? 'Pause Cart' : 'Activate Cart';
       html += '</button>';
@@ -395,12 +401,14 @@
     }
 
     // Delete button
-    html += '<div class="sc-detail-footer">';
-    html += '<button class="sc-btn sc-btn-danger sc-act-delete" data-id="' + esc(cart.id) + '">';
-    html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>';
-    html += ' Delete this cart';
-    html += '</button>';
-    html += '</div>';
+    if (allowDelete) {
+      html += '<div class="sc-detail-footer">';
+      html += '<button class="sc-btn sc-btn-danger sc-act-delete" data-id="' + esc(cart.id) + '">';
+      html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>';
+      html += ' Delete this cart';
+      html += '</button>';
+      html += '</div>';
+    }
 
     html += '</div>'; // sc-detail
 
