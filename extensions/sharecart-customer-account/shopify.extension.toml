@@ -15,19 +15,3 @@ target = "customer-account.page.render"
 api_access = true
 network_access = true
 
-# ── Compact widget on the account overview / profile page ─────────────────────
-[[extensions]]
-uid = "sharecart-account-profile-widget"
-type = "ui_extension"
-name = "Shared Carts Widget"
-handle = "sharecart-account-widget"
-
-[[extensions.targeting]]
-module = "./src/SharedCartsWidget.jsx"
-target = "customer-account.profile.block.render"
-
-default_placement = "PROFILE2"
-
-[extensions.capabilities]
-api_access = true
-network_access = true
