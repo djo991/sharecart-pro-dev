@@ -317,8 +317,8 @@
       html += '<div class="sc-qr-text">';
       html += '<h4>Scan QR Code</h4>';
       html += '<p class="sc-text-muted">Customers can scan this code to instantly load this cart.</p>';
-      html += '<a class="sc-btn sc-btn-outline" href="' + esc(qrUrl) + '&format=png' + '" download="sharecart-qr.png" style="margin-top:8px;">'; 
-      html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>';
+      html += '<a class="sc-btn sc-btn-outline" href="' + esc(qrUrl) + '&format=png' + '" download="sharecart-qr.png" style="margin-top:8px;">';
+      html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2-2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>';
       html += ' Download QR';
       html += '</a>';
       html += '</div>';
@@ -388,13 +388,13 @@
       html += '<div class="sc-orders-section">';
       html += '<h3 class="sc-section-title">Orders from this cart</h3>';
       html += '<table class="sc-orders-table">';
-      html += '<thead><tr><th>Order</th><th class="sc-text-right">Amount</th><th class="sc-text-right">Date</th></tr></thead>';
+      html += '<thead><tr><th>Order</th><th>Amount</th><th>Date</th></tr></thead>';
       html += '<tbody>';
       cart.orders.forEach(function (order) {
         html += '<tr>';
         html += '<td class="sc-order-name">' + esc(order.shopifyOrderName || order.shopifyOrderId || '—') + '</td>';
-        html += '<td class="sc-text-right">' + (order.orderValue != null ? '$' + order.orderValue.toFixed(2) : '—') + '</td>';
-        html += '<td class="sc-text-right sc-text-muted">' + formatDate(order.createdAt) + '</td>';
+        html += '<td>' + (order.orderValue != null ? '$' + order.orderValue.toFixed(2) : '—') + '</td>';
+        html += '<td class="sc-text-muted">' + formatDate(order.createdAt) + '</td>';
         html += '</tr>';
       });
       html += '</tbody></table></div>';
@@ -549,8 +549,8 @@
 .sc-card:hover { box-shadow:var(--sc-shadow-hover); transform:translateY(-2px); }\
 .sc-card-paused { opacity:0.72; }\
 .sc-card-header { display:flex; justify-content:space-between; align-items:flex-start; }\
-.sc-card-title { font-size:1.05rem; font-weight:700; color:var(--sc-text); margin:0; }\
-.sc-card-date { font-size:0.8125rem; color:var(--sc-text-muted); margin-top:2px; }\
+.sc-card-title { font-size:1.5rem; font-weight:700; color:var(--sc-text); margin:0; }\
+.sc-card-date { font-size:1rem; color:var(--sc-text-muted); margin-top:2px; }\
 \
 /* ── Badge ──────────────────────────────────────────────────────────── */\
 .sc-badge { display:inline-block; font-size:0.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; padding:4px 10px; border-radius:4px; white-space:nowrap; }\
@@ -563,8 +563,8 @@
 .sc-metrics-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:12px 0; border-top:1px solid var(--sc-border); border-bottom:1px solid var(--sc-border); }\
 .sc-metric { text-align:center; }\
 .sc-metric-bordered { border-left:1px solid var(--sc-border); border-right:1px solid var(--sc-border); }\
-.sc-metric-label { font-size:0.75rem; color:var(--sc-text-muted); text-transform:uppercase; letter-spacing:0.04em; font-weight:600; margin:0; }\
-.sc-metric-value { font-size:1.15rem; font-weight:800; color:var(--sc-text); margin:2px 0 0; }\
+.sc-metric-label { font-size:1rem; color:var(--sc-text-muted); text-transform:uppercase; letter-spacing:0.04em; font-weight:600; margin:0; }\
+.sc-metric-value { font-size:1rem; font-weight:800; color:var(--sc-text); margin:2px 0 0; }\
 \
 /* ── Card Actions ───────────────────────────────────────────────────── */\
 .sc-card-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }\
@@ -622,7 +622,7 @@
 \
 /* Share section */\
 .sc-share-section { background:var(--sc-surface); border:1px solid var(--sc-border); border-radius:var(--sc-radius); padding:16px; }\
-.sc-section-title { font-size:1rem; font-weight:700; margin:0 0 12px; display:flex; align-items:center; gap:6px; }\
+.sc-section-title { font-size:1.5rem; font-weight:700; margin:0 0 12px; display:flex; align-items:center; gap:6px; }\
 .sc-section-title svg { color:var(--sc-primary); }\
 .sc-share-row { display:flex; gap:8px; }\
 .sc-share-url { flex:1; background:#f8fafc; border:1px solid var(--sc-border); border-radius:var(--sc-radius-sm); padding:8px 12px; font-size:0.875rem; color:var(--sc-text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }\
