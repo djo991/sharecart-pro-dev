@@ -15,10 +15,10 @@
 
     // Check visibility rules before proceeding
     if (!shouldShowButton()) {
-      console.log('[ShareCart Debug Drawer] shouldShowButton returned false. visibilityMode:', sc.visibilityMode, 'loggedIn:', sc.customerLoggedIn);
-      // return; // REMOVED EARLY RETURN TO FORCE EVENT BINDING
+      console.log('[ShareCart Drawer] Button hidden — visibilityMode:', sc.visibilityMode, 'loggedIn:', sc.customerLoggedIn);
+      return;
     }
-    console.log('[ShareCart Debug Drawer] shouldShowButton returned true');
+    console.log('[ShareCart Drawer] Button visible — visibilityMode:', sc.visibilityMode);
 
     function shouldShowButton() {
       if (sc.visibilityMode === 'all') return true;
