@@ -1,32 +1,10 @@
 import { authenticate } from "../shopify.server";
 import { toggleShareLink } from "../models/shareLink.server";
-
-function getCorsHeaders(request) {
-  const origin = request.headers?.get('Origin') || request.headers?.get('origin') || '';
-  const allowed = (
-    origin.endsWith('.myshopify.com') ||
-    origin.endsWith('.shopify.com') ||
-    origin === 'https://extensions.shopifycdn.com'
-  ) ? origin : 'https://extensions.shopifycdn.com';
-
-  return {
-    "Access-Control-Allow-Origin": allowed,
-    "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    "Access-Control-Max-Age": "86400",
-  };
-}
-
-function corsJson(request, data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json", ...getCorsHeaders(request) },
-  });
-}
+import { corsJson, corsOptions } from "../utils/customerCors";
 
 export const action = async ({ request, params }) => {
   if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: getCorsHeaders(request) });
+    return corsOptions(request);
   }
 
   try {
@@ -64,7 +42,7 @@ export const action = async ({ request, params }) => {
 
 export const loader = async ({ request }) => {
   if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: getCorsHeaders(request) });
+    return corsOptions(request);
   }
   return corsJson(request, { error: "Method not allowed" }, 405);
 };

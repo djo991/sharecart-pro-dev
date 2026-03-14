@@ -80,7 +80,9 @@
       "Bash(powershell -File:*)",
       "Bash(powershell -Command \"Get-Content ''C:/Users/Djordje/AppData/Local/Temp/sharecart_icon_names.txt''\")",
       "Bash(powershell -Command \"Get-Content ''C:/Users/Djordje/.claude/projects/C--Users-Djordje-Documents-Shopify-ShareCartPro-sharecart-pro/01c3e283-f2e8-40e5-b53f-693003ea2f91/tool-results/mcp-shopify-dev-mcp-learn_extension_target_types-1772963231258.txt'' | Select-String -Pattern ''BoxProps|s-box|TextProps|s-text|IconProps|s-icon'' -Context 5,5\")",
-      "Bash(powershell -Command \":*)"
+      "Bash(powershell -Command \":*)",
+      "Bash(npx prisma migrate dev --name add_perf_indexes)",
+      "Bash(npx prisma db push)"
     ]
   }
 }

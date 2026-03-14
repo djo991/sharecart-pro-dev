@@ -421,12 +421,16 @@
     // Search
     var searchInput = document.getElementById('sc-search');
     if (searchInput) {
+      var _searchTimer = null;
       searchInput.addEventListener('input', function (e) {
-        searchQuery = e.target.value;
-        render();
-        // Re-focus and restore cursor position
-        var el = document.getElementById('sc-search');
-        if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+        var val = e.target.value;
+        clearTimeout(_searchTimer);
+        _searchTimer = setTimeout(function () {
+          searchQuery = val;
+          render();
+          var el = document.getElementById('sc-search');
+          if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+        }, 250);
       });
     }
 

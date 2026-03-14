@@ -154,7 +154,6 @@ export async function getShareLinksForCustomer(
       take: perPage,
       include: {
         promoCodes: true,
-        orders: { orderBy: { createdAt: "desc" } },
         _count: { select: { events: true, orders: true } },
       },
     }),

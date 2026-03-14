@@ -8,6 +8,15 @@
   var token = params.get(SC_PARAM);
   if (!token) return;
 
+  // Inject spinner keyframe once — used by both preview modal and loading overlay.
+  function ensureSpinnerStyle() {
+    if (document.getElementById('sc-preview-style')) return;
+    var s = document.createElement('style');
+    s.id = 'sc-preview-style';
+    s.textContent = '@keyframes sc-spin { to { transform: rotate(360deg); } }';
+    document.head.appendChild(s);
+  }
+
   // Wait for DB-driven config to load before reading redirectTarget etc.
   var ready = window.__sharecartReady;
   var configPromise = (ready && typeof ready.then === 'function')
@@ -98,11 +107,8 @@
         }
 
         try {
-          var paramsObj = new URLSearchParams(window.location.search);
-          paramsObj.delete(SC_PARAM);
-          paramsObj.forEach(function (value, key) {
-            attributes[key] = value;
-          });
+          // Reuse the `params` object parsed at IIFE top — SC_PARAM already deleted there.
+          params.forEach(function (value, key) { attributes[key] = value; });
         } catch (e) { }
 
         return fetch('/cart/update.js', {
@@ -200,12 +206,7 @@
     confirmBtn.onmouseout = function () { confirmBtn.style.opacity = '1'; };
     confirmBtn.onclick = function () {
       confirmBtn.innerHTML = '<span class="sc-spinner" style="display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sc-spin 0.75s linear infinite;vertical-align:middle;margin-right:8px;"></span>Loading...';
-      if (!document.getElementById('sc-preview-style')) {
-        var style = document.createElement('style');
-        style.id = 'sc-preview-style';
-        style.textContent = '@keyframes sc-spin { to { transform: rotate(360deg); } }';
-        document.head.appendChild(style);
-      }
+      ensureSpinnerStyle();
       confirmBtn.disabled = true;
       cancelBtn.disabled = true;
       cancelBtn.style.opacity = '0.5';
@@ -235,12 +236,7 @@
     text.textContent = message || 'Restoring your cart...';
     text.style.cssText = 'font-size:16px;line-height:1.5;font-weight:600;color:#111;max-width:320px;';
 
-    if (!document.getElementById('sc-preview-style')) {
-      var style = document.createElement('style');
-      style.id = 'sc-preview-style';
-      style.textContent = '@keyframes sc-spin { to { transform: rotate(360deg); } }';
-      document.head.appendChild(style);
-    }
+    ensureSpinnerStyle();
 
     overlay.appendChild(spinner);
     overlay.appendChild(text);

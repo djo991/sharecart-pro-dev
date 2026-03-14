@@ -13,19 +13,7 @@
     console.log('[ShareCart Debug] Button init started');
     var sc = window.__sharecart || {};
 
-    // Check visibility rules before initializing
-    function shouldShowButton() {
-      if (sc.visibilityMode === 'all') return true;
-      if (!sc.customerLoggedIn) return false;
-      if (sc.visibilityMode === 'logged_in') return true;
-      if (sc.visibilityMode === 'tagged') {
-        var tags = sc.customerTags || [];
-        return tags.indexOf(sc.requiredTag) >= 0;
-      }
-      return false;
-    }
-
-    if (!shouldShowButton()) {
+    if (!(sc.shouldShow ? sc.shouldShow() : true)) {
       console.log('[ShareCart] Button hidden — visibilityMode:', sc.visibilityMode, 'loggedIn:', sc.customerLoggedIn);
       var wrapper = document.getElementById('sharecart-btn-wrapper');
       if (wrapper) wrapper.style.display = 'none';

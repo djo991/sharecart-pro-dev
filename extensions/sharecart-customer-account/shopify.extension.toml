@@ -1,0 +1,16 @@
+api_version = "2024-10"
+
+[[extensions]]
+type = "ui_extension"
+name = "ShareCart Pro - Customer Account"
+handle = "sharecart-customer-account"
+
+[[extensions.targeting]]
+module = "./src/SharedCartsPage.jsx"
+target = "customer-account.page.render"
+label = "Shared Carts"
+
+[[extensions.targeting]]
+module = "./src/SharedCartsWidget.jsx"
+target = "customer-account.profile.block.render"
+label = "Shared Carts"

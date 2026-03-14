@@ -30,11 +30,33 @@
     redirectTarget: "{{ block.settings.redirect_target }}"
   };
 
+  // Visibility helper — shared by button.js and drawer.js via window.__sharecart.shouldShow().
+  // Defined here so it always uses the latest merged config at call time.
+  window.__sharecart.shouldShow = function () {
+    var sc = window.__sharecart;
+    if (sc.visibilityMode === 'all') return true;
+    if (!sc.customerLoggedIn) return false;
+    if (sc.visibilityMode === 'logged_in') return true;
+    if (sc.visibilityMode === 'tagged') {
+      return (sc.customerTags || []).indexOf(sc.requiredTag) >= 0;
+    }
+    return false;
+  };
+
   // Fetch DB-driven settings from the app proxy and merge over the theme editor defaults.
+  // Times out after 5 s so scripts don't hang if the proxy is slow/unavailable.
   // The JS scripts (sharecart-button.js etc.) wait for this promise before initialising.
-  // NOTE: app proxy strips /apps/sharecart prefix, so /apps/sharecart/api/... → server /api/...
-  window.__sharecartReady = fetch('/apps/sharecart/api/storefront/config', { credentials: 'same-origin' })
-    .then(function(r) { return r.ok ? r.json() : {}; })
+  var _scCtrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  var _scTimeout = _scCtrl ? setTimeout(function () { _scCtrl.abort(); }, 5000) : null;
+
+  window.__sharecartReady = fetch('/apps/sharecart/api/storefront/config', {
+    credentials: 'same-origin',
+    signal: _scCtrl ? _scCtrl.signal : undefined
+  })
+    .then(function(r) {
+      if (_scTimeout) clearTimeout(_scTimeout);
+      return r.ok ? r.json() : {};
+    })
     .then(function(cfg) {
       var sc = window.__sharecart;
       if (cfg.visibilityMode  !== undefined) sc.visibilityMode    = cfg.visibilityMode;
@@ -47,13 +69,13 @@
       if (cfg.showSaveOption       !== undefined) sc.showSaveOption       = cfg.showSaveOption;
       if (cfg.defaultShareMessage  !== undefined) sc.defaultShareMessage  = cfg.defaultShareMessage;
       // Button appearance (overrides theme editor defaults)
-      if (cfg.buttonLabel    !== undefined) sc.buttonLabel    = cfg.buttonLabel;
-      if (cfg.buttonColor    !== undefined) sc.buttonColor    = cfg.buttonColor;
+      if (cfg.buttonLabel     !== undefined) sc.buttonLabel     = cfg.buttonLabel;
+      if (cfg.buttonColor     !== undefined) sc.buttonColor     = cfg.buttonColor;
       if (cfg.buttonTextColor !== undefined) sc.buttonTextColor = cfg.buttonTextColor;
       if (cfg.enabledChannels !== undefined) sc.enabledChannels = cfg.enabledChannels;
       return sc;
     })
-    .catch(function() { return window.__sharecart; }); // fall back to theme editor values on error
+    .catch(function() { return window.__sharecart; }); // fall back to theme editor values on timeout/error
 </script>
 
 <script src="{{ 'sharecart-params.js' | asset_url }}" defer></script>

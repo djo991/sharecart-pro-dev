@@ -13,23 +13,12 @@
     console.log('[ShareCart Debug] Drawer init started');
     var sc = window.__sharecart || {};
 
-    // Check visibility rules before proceeding
-    if (!shouldShowButton()) {
+    // Check visibility rules before proceeding (shared helper from sharecart-init.liquid)
+    if (!(sc.shouldShow ? sc.shouldShow() : true)) {
       console.log('[ShareCart Drawer] Button hidden — visibilityMode:', sc.visibilityMode, 'loggedIn:', sc.customerLoggedIn);
       return;
     }
     console.log('[ShareCart Drawer] Button visible — visibilityMode:', sc.visibilityMode);
-
-    function shouldShowButton() {
-      if (sc.visibilityMode === 'all') return true;
-      if (!sc.customerLoggedIn) return false;
-      if (sc.visibilityMode === 'logged_in') return true;
-      if (sc.visibilityMode === 'tagged') {
-        var tags = sc.customerTags || [];
-        return tags.indexOf(sc.requiredTag) >= 0;
-      }
-      return false;
-    }
 
     // Common cart drawer selectors across popular Shopify themes
     var DRAWER_SELECTORS = [
@@ -165,22 +154,29 @@
     }
 
     // ── Observe DOM for drawer appearing/changing ──
+    // Throttle: only process mutations once per 250 ms to avoid excessive work
+    // on stores that update the DOM frequently (e.g., cart item count updates).
+    var _injectTimer = null;
+    var _attrTimer   = null;
+
     var observer = new MutationObserver(function (mutations) {
+      var hasNodes = false;
+      var hasAttr  = false;
       for (var i = 0; i < mutations.length; i++) {
-        var mutation = mutations[i];
+        if (mutations[i].addedNodes.length > 0) hasNodes = true;
+        if (mutations[i].type === 'attributes') hasAttr = true;
+        if (hasNodes && hasAttr) break;
+      }
 
-        // Check if any added nodes are or contain a cart drawer
-        if (mutation.addedNodes.length > 0) {
-          tryInject();
-        }
-
-        // Check attribute changes (drawer open/close toggles)
-        if (mutation.type === 'attributes') {
+      if (hasNodes && !_injectTimer) {
+        _injectTimer = setTimeout(function () { _injectTimer = null; tryInject(); }, 250);
+      }
+      if (hasAttr && !_attrTimer) {
+        _attrTimer = setTimeout(function () {
+          _attrTimer = null;
           var drawer = findCartDrawer();
-          if (drawer && isDrawerVisible(drawer)) {
-            injectButton(drawer);
-          }
-        }
+          if (drawer && isDrawerVisible(drawer)) injectButton(drawer);
+        }, 250);
       }
     });
 

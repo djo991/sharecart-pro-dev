@@ -1,37 +1,10 @@
 import { authenticate, unauthenticated } from "../shopify.server";
 import { getShareLinksForCustomer } from "../models/shareLink.server";
-
-// Explicit CORS headers — cors() from authenticate.public.customerAccount only
-// covers Shopify account origins, not extensions.shopifycdn.com where the
-// customer account UI extension JS runs.
-function getCorsHeaders(request) {
-  const origin = request.headers?.get('Origin') || request.headers?.get('origin') || '';
-  const allowed = (
-    origin.endsWith('.myshopify.com') ||
-    origin.endsWith('.shopify.com') ||
-    origin === 'https://extensions.shopifycdn.com'
-  ) ? origin : 'https://extensions.shopifycdn.com';
-
-  return {
-    "Access-Control-Allow-Origin": allowed,
-    "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    "Access-Control-Max-Age": "86400",
-  };
-}
-
-function corsJson(request, data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json", ...getCorsHeaders(request) },
-  });
-}
+import { corsJson, corsOptions } from "../utils/customerCors";
 
 // OPTIONS preflight — must respond before any authentication
 export const action = async ({ request }) => {
-  if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: getCorsHeaders(request) });
-  }
+  if (request.method === "OPTIONS") return corsOptions(request);
   return corsJson(request, { error: "Method not allowed" }, 405);
 };
 
@@ -113,9 +86,7 @@ async function enrichItemTitles(shopDomain, shareCarts) {
 }
 
 export const loader = async ({ request }) => {
-  if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: getCorsHeaders(request) });
-  }
+  if (request.method === "OPTIONS") return corsOptions(request);
 
   try {
     // Wrap auth so failures still return CORS-decorated responses the extension can read
@@ -171,13 +142,6 @@ export const loader = async ({ request }) => {
         createdAt: link.createdAt,
         items,
         promoCodes: link.promoCodes || [],
-        orders: (link.orders || []).map((o) => ({
-          id: o.id,
-          shopifyOrderId: o.shopifyOrderId,
-          shopifyOrderName: o.shopifyOrderName,
-          orderValue: o.orderValue,
-          createdAt: o.createdAt,
-        })),
       };
     });
 
