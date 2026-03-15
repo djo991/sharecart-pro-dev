@@ -117,7 +117,7 @@
           body: JSON.stringify({ attributes: attributes })
         }).catch(function () { }).then(function () {
           // Log the restore event
-          logEvent('cart_restored');
+          logEvent('cart_restored', config);
 
           if (failed > 0) {
             showRestoreToast(added + ' item(s) added. ' + failed + ' item(s) unavailable.');
@@ -272,8 +272,10 @@
   }
 
   // ── Log event to app API ──
-  function logEvent(eventType) {
-    var shopDomain = config.shop || '';
+  function logEvent(eventType, config) {
+    var cfg = config || window.__sharecart || {};
+    var shopDomain = cfg.shop || '';
+    var appUrl = cfg.appUrl || '';
     fetch(appUrl + '/api/event', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
